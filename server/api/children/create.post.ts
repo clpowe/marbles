@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
     const body = await readBody(event);
 
     // Validate input data
-    const { firstName, lastName, motherId, fatherId } = body;
+    const { firstName, lastName, motherId, fatherId, birthDate } = body;
 
     if (!firstName || !lastName || !motherId || !fatherId) {
       throw new Error(
@@ -17,21 +17,27 @@ export default defineEventHandler(async (event) => {
     const uuid = crypto.randomUUID();
 
     // Insert the child into the database
-    const result = await useDrizzle().insert(tables.children).values({
-      id: uuid,
-      firstName,
-      lastName,
-      motherId,
-      fatherId,
-    });
+    const result = await useDrizzle()
+      .insert(tables.ChildrenTable)
+      .values({
+        id: uuid,
+        firstName,
+        lastName,
+        birthDate,
+        motherId,
+        fatherId,
+      })
+      .returning();
 
     // Return a success response
     return {
       success: true,
       message: "Child added successfully",
-      childId: result.id, // Drizzle ORM will return the inserted ID
+      statusCode: 200,
+      childId: result[0].id, // Drizzle ORM will return the inserted ID
     };
   } catch (error: any) {
+    console.log(error);
     // Return an error response
     return {
       success: false,
