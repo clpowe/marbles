@@ -2,9 +2,9 @@
   <UCard class="card">
     <div class="card-body">
       <h5 class="card-title">{{ child.firstName }} {{ child.lastName }}</h5>
-      <p class="card-text">
+      <!-- <p class="card-text">
         {{ child.birthDate }}
-      </p>
+      </p> -->
       <p class="card-text">{{ child.transactionSum }} Marbles</p>
     </div>
     <template #footer>
