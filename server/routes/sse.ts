@@ -1,10 +1,19 @@
+import { getChildren } from "~~/server/utils/children";
+import updates from "~~/server/utils/eventEmmit";
+
 export default defineEventHandler(async (event) => {
   const eventStream = createEventStream(event);
+  const { user } = await requireUserSession(event);
+
+  updates.updates.on("new", async (data) => {
+    const children = await getChildren(user.id);
+    await eventStream.push(JSON.stringify(children));
+  });
 
   const interval = setInterval(async () => {
-    const children = await useDrizzle().select().from(tables.children).all();
+    const children = await getChildren(user.id);
     await eventStream.push(JSON.stringify(children));
-  }, 500);
+  }, 1000);
 
   eventStream.onClosed(async () => {
     clearInterval(interval);

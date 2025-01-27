@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "c6ca5a71-6920-4eb3-a7ac-71f4150266b1",
+  "id": "b2056eee-dfc5-44f5-b963-761ac121464b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "children": {
@@ -92,8 +92,8 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
-    "marble_transactions": {
-      "name": "marble_transactions",
+    "marbleTransactions": {
+      "name": "marbleTransactions",
       "columns": {
         "id": {
           "name": "id",
@@ -135,9 +135,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "marble_transactions_child_id_children_id_fk": {
-          "name": "marble_transactions_child_id_children_id_fk",
-          "tableFrom": "marble_transactions",
+        "marbleTransactions_child_id_children_id_fk": {
+          "name": "marbleTransactions_child_id_children_id_fk",
+          "tableFrom": "marbleTransactions",
           "tableTo": "children",
           "columnsFrom": [
             "child_id"
@@ -165,7 +165,7 @@
         },
         "email": {
           "name": "email",
-          "type": "text",
+          "type": "text(255)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
@@ -187,6 +187,14 @@
           "autoincrement": false,
           "default": "''"
         },
+        "sex": {
+          "name": "sex",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'male'"
+        },
         "password": {
           "name": "password",
           "type": "text",
@@ -206,6 +214,13 @@
       "indexes": {
         "users_email_unique": {
           "name": "users_email_unique",
+          "columns": [
+            "email"
+          ],
+          "isUnique": true
+        },
+        "emailIndex": {
+          "name": "emailIndex",
           "columns": [
             "email"
           ],

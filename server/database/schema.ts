@@ -35,7 +35,7 @@ export const ChildrenTable = sqliteTable("children", {
   id: text("id").primaryKey(), // UUID
   firstName: text("first_name").notNull().default(""),
   lastName: text("last_name").notNull().default(""),
-  birthDate: integer("birth_date", { mode: "timestamp" }),
+  birthDate: text("birth_date"),
   motherId: text("mother_id")
     .notNull()
     .references(() => UserTable.id),
@@ -62,34 +62,46 @@ export const MarbleTransactionsTable = sqliteTable("marbleTransactions", {
 
 // RELATIONS
 
-export const UserTableRelations = relations(UserTable, ({ many }) => {
-  return {
-    children: many(ChildrenTable),
-  };
-});
-
 export const ChildrenTableRelations = relations(
   ChildrenTable,
-  ({ one, many }) => {
-    return {
-      marbleTransactions: many(MarbleTransactionsTable),
-      mother: one(UserTable, {
-        fields: [ChildrenTable.motherId],
-        references: [UserTable.id],
-      }),
-      father: one(UserTable, {
-        fields: [ChildrenTable.fatherId],
-        references: [UserTable.id],
-      }),
-    };
-  },
+  ({ one, many }) => ({
+    marbleTransactions: many(MarbleTransactionsTable),
+    mother: one(UserTable, {
+      fields: [ChildrenTable.motherId],
+      references: [UserTable.id],
+      relationName: "motherChildren",
+    }),
+    father: one(UserTable, {
+      fields: [ChildrenTable.fatherId],
+      references: [UserTable.id],
+      relationName: "fatherChildren",
+    }),
+  }),
 );
+
+// Define the relations for UserTable
+export const UserTableRelations = relations(UserTable, ({ many }) => ({
+  motherChildren: many(ChildrenTable, {
+    relationName: "motherChildren",
+    fields: [UserTable.id],
+    references: [ChildrenTable.motherId],
+  }),
+  fatherChildren: many(ChildrenTable, {
+    relationName: "fatherChildren",
+    fields: [UserTable.id],
+    references: [ChildrenTable.fatherId],
+  }),
+}));
 
 export const MarbleTransactionsTableRelations = relations(
   MarbleTransactionsTable,
-  ({ many }) => {
+  ({ one, many }) => {
     return {
-      child: many(ChildrenTable),
+      childTrans: one(ChildrenTable, {
+        fields: [MarbleTransactionsTable.childId],
+        references: [ChildrenTable.id],
+      }),
+      // child: many(ChildrenTable),
     };
   },
 );

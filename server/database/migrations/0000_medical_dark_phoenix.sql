@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `children` (
 	FOREIGN KEY (`father_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS `marble_transactions` (
+CREATE TABLE IF NOT EXISTS `marbleTransactions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`child_id` text NOT NULL,
 	`amount` integer DEFAULT 0 NOT NULL,
@@ -21,11 +21,13 @@ CREATE TABLE IF NOT EXISTS `marble_transactions` (
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS `users` (
 	`id` text PRIMARY KEY NOT NULL,
-	`email` text DEFAULT '',
+	`email` text(255) DEFAULT '',
 	`first_name` text DEFAULT '' NOT NULL,
 	`last_name` text DEFAULT '' NOT NULL,
+	`sex` text DEFAULT 'male' NOT NULL,
 	`password` text DEFAULT '' NOT NULL,
 	`created_at` text NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX IF NOT EXISTS `users_email_unique` ON `users` (`email`);
+CREATE UNIQUE INDEX IF NOT EXISTS `users_email_unique` ON `users` (`email`);--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS `emailIndex` ON `users` (`email`);

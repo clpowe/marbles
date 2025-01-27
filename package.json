@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev",
+    "dev": "NODE_TLS_REJECT_UNAUTHORIZED=0 nuxt dev --https --ssl-cert localhost.pem --ssl-key localhost-key.pem",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
@@ -14,8 +14,9 @@
   "dependencies": {
     "@formkit/icons": "^1.6.9",
     "@formkit/vue": "^1.6.9",
+    "@internationalized/date": "^3.7.0",
     "@nuxt/eslint": "^0.5.7",
-    "@nuxt/ui": "2.21.0",
+    "@nuxt/ui": "^3.0.0-alpha.11",
     "@nuxt/ui-pro": "^1.6.0",
     "@nuxthub/core": "^0.8.13",
     "@paralleldrive/cuid2": "^2.2.2",
@@ -40,6 +41,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@formkit/nuxt": "^1.6.9",
     "@nuxt/eslint-config": "^0.5.7",
     "drizzle-kit": "^0.30.2",
     "eslint": "^9.17.0",
