@@ -1,44 +1,47 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-	future: { compatibilityVersion: 4 },
+  future: { compatibilityVersion: 4 },
 
-	modules: [
-		'@nuxthub/core',
-		'@formkit/nuxt',
-		'@pinia/nuxt',
-		'nuxt-auth-utils',
-		'@nuxt/ui',
-		'@vueuse/nuxt'
-	],
+  modules: [
+    "@nuxthub/core",
+    "@formkit/nuxt",
+    "@pinia/nuxt",
+    "nuxt-auth-utils",
+    "@nuxt/ui",
+    "@vueuse/nuxt",
+  ],
 
-	hub: {
-		database: true
-	},
+  hub: {
+    database: true,
+  },
 
-	css: ['~/assets/css/main.css'],
-	$development: {
-		hub: {
-			remote: true
-		}
-	},
+  css: ["~/assets/css/main.css"],
+  $development: {
+    hub: {
+      remote: true,
+    },
+  },
 
-	runtimeConfig: {
-		public: {
-			helloText: 'Hello from the Edge 👋'
-		}
-	},
+  runtimeConfig: {
+    public: {
+      helloText: "Hello from the Edge 👋",
+    },
+  },
 
-	nitro: {
-		experimental: {
-			tasks: true
-		}
-	},
+  nitro: {
+    routeRules: {
+      "/sse": { ssr: false },
+    },
+    experimental: {
+      tasks: true,
+    },
+  },
 
-	formkit: {
-		autoImport: true
-	},
+  formkit: {
+    autoImport: true,
+  },
 
-	devtools: { enabled: true },
+  devtools: { enabled: true },
 
-	compatibilityDate: '2025-01-05'
-})
+  compatibilityDate: "2025-01-05",
+});
