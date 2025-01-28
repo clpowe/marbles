@@ -4,38 +4,55 @@ import {
   ChildrenTable,
   MarbleTransactionsTable,
 } from "~~/server/database/schema";
-import { eq } from "drizzle-orm";
+import { eq, sum, sql } from "drizzle-orm";
 
 export async function getChildren(userId: string) {
-  const res = await useDrizzle().query.UserTable.findFirst({
-    where: eq(UserTable.id, userId),
-    with: {
-      motherChildren: {
-        with: {
-          marbleTransactions: true,
+  try {
+    const res = await useDrizzle().query.UserTable.findFirst({
+      where: eq(UserTable.id, userId),
+      with: {
+        motherChildren: {
+          columns: {
+            firstName: true,
+            lastName: true,
+          },
+          with: {
+            marbleTransactions: {
+              extras: (table, { sql }) => ({
+                total: sql<number>`sum(${table.amount})`.as("total"),
+              }),
+            },
+          },
+        },
+        fatherChildren: {
+          columns: {
+            firstName: true,
+            lastName: true,
+          },
+          with: {
+            marbleTransactions: {
+              extras: (table, { sql }) => ({
+                total: sql<number>`sum(${table.amount})`.as("total"),
+              }),
+            },
+          },
         },
       },
-      fatherChildren: {
-        with: {
-          marbleTransactions: true,
-        },
-      },
-    },
-  });
+    });
 
-  // Combine both motherChildren and fatherChildren
-  const allChildren = [
-    ...(res?.motherChildren ?? []),
-    ...(res?.fatherChildren ?? []),
-  ].map((child) => ({
-    ...child,
-    transactionSum: child.marbleTransactions.reduce(
-      (sum, transaction) => sum + (transaction.amount ?? 0),
-      0,
-    ),
-  }));
+    console.log(res);
 
-  return allChildren;
+    const allChildren = [
+      ...(res?.motherChildren ?? []),
+      ...(res?.fatherChildren ?? []),
+    ];
+
+    console.log(allChildren);
+
+    return allChildren;
+  } catch (e) {
+    console.log(e);
+  }
 }
 
 export async function createChild(child: ChildInsert) {
