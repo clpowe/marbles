@@ -30,10 +30,7 @@ type Child = {
   id: string;
   firstName: string;
   lastName: string;
-  birthDate: string;
-  motherId: string;
-  marbleTransactions: MarbleTransaction[];
-  fatherId: string;
+
   transactionSum: number;
 };
 

@@ -3,22 +3,15 @@ import updates from "~~/server/utils/eventEmmit";
 
 export default defineEventHandler(async (event) => {
   const eventStream = createEventStream(event);
-  const session = await getUserSession(event);
-
-  console.log(session.user);
-
-  if (!session.user) {
-    console.log(session.user?.id);
-    return;
-  }
+  const { user } = await getUserSession(event);
 
   updates.updates.on("new", async (data) => {
-    const children = await getChildren(session.user?.id);
+    const children = await getChildren(user?.id);
     await eventStream.push(JSON.stringify(children));
   });
 
   const interval = setInterval(async () => {
-    const children = await getChildren(session.user?.id);
+    const children = await getChildren(user?.id);
     await eventStream.push(JSON.stringify(children));
   }, 1000);
 

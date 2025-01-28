@@ -7,52 +7,27 @@ import {
 import { eq, sum, sql } from "drizzle-orm";
 
 export async function getChildren(userId: string) {
-  try {
-    const res = await useDrizzle().query.UserTable.findFirst({
-      where: eq(UserTable.id, userId),
-      with: {
-        motherChildren: {
-          columns: {
-            firstName: true,
-            lastName: true,
-          },
-          with: {
-            marbleTransactions: {
-              extras: (table, { sql }) => ({
-                total: sql<number>`sum(${table.amount})`.as("total"),
-              }),
-            },
-          },
-        },
-        fatherChildren: {
-          columns: {
-            firstName: true,
-            lastName: true,
-          },
-          with: {
-            marbleTransactions: {
-              extras: (table, { sql }) => ({
-                total: sql<number>`sum(${table.amount})`.as("total"),
-              }),
-            },
-          },
-        },
-      },
-    });
+  const res = await useDrizzle()
+    .select({
+      id: ChildrenTable.id,
+      firstName: ChildrenTable.firstName,
+      lastName: ChildrenTable.lastName,
+      transactionSum: sql`COALESCE(SUM(marbleTransactions.amount), 0)`,
+    })
+    .from(tables.ChildrenTable)
+    .where(
+      or(
+        eq(ChildrenTable.motherId, userId),
+        eq(ChildrenTable.fatherId, userId),
+      ),
+    )
+    .leftJoin(
+      MarbleTransactionsTable,
+      eq(ChildrenTable.id, MarbleTransactionsTable.childId),
+    )
+    .groupBy(ChildrenTable.id);
 
-    console.log(res);
-
-    const allChildren = [
-      ...(res?.motherChildren ?? []),
-      ...(res?.fatherChildren ?? []),
-    ];
-
-    console.log(allChildren);
-
-    return allChildren;
-  } catch (e) {
-    console.log(e);
-  }
+  return res;
 }
 
 export async function createChild(child: ChildInsert) {
