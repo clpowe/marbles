@@ -1,14 +1,17 @@
 <script setup>
 const { loggedIn, user, session, fetch, clear } = useUserSession();
-const { data: children } = await useFetch("/api/children/getAll");
 
-let message = ref(undefined);
+let children = useState("message", () => []);
+
+const { data: load } = useFetch("/api/children/getAll");
+
+children.value = load;
 
 const { status, data, error, close } = useEventSource("/sse");
 
 watch(data, () => {
-  console.log(data);
-  message.value = JSON.parse(data.value);
+  if (data.value === "") return;
+  children.value = JSON.parse(data.value);
 });
 
 onMounted(async () => {
@@ -31,7 +34,12 @@ onMounted(async () => {
 
   <section>
     <h2>Children</h2>
-    <ChildCard v-for="child in message" :key="child.id" :child="child" />
+    <ChildCard
+      v-if="children"
+      v-for="child in children"
+      :key="child.id"
+      :child="child"
+    />
   </section>
 
   <div>
