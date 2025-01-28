@@ -101,7 +101,6 @@ export const MarbleTransactionsTableRelations = relations(
         fields: [MarbleTransactionsTable.childId],
         references: [ChildrenTable.id],
       }),
-      // child: many(ChildrenTable),
     };
   },
 );
