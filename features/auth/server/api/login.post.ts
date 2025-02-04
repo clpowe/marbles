@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { findUserByEmail } from '~~/server/utils/user'
-import catchError from '../../utils/catchError'
+import catchError from '~~/server/utils/catchError'
 
 const bodySchema = z.object({
 	email: z.string().email(),
@@ -9,7 +9,6 @@ const bodySchema = z.object({
 
 export default defineEventHandler(async (event) => {
 	const { email, password } = await readValidatedBody(event, bodySchema.parse)
-	console.log(email, password)
 	const [userError, user] = await catchError(findUserByEmail(email))
 
 	if (userError || !user) {
@@ -21,7 +20,6 @@ export default defineEventHandler(async (event) => {
 	}
 
 	if (await verifyPassword(user?.password!, password)) {
-		console.log('Logged in')
 		// set the user session in the cookie
 		// this server util is auto-imported by the auth-utils module
 		await setUserSession(event, {

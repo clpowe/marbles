@@ -41,7 +41,7 @@ async function onSubmit(e: FormSubmitEvent<Schema>) {
       body: e.data,
     });
 
-    console.log(res);
+    console.log("Register Page",res);
 
     if (res.statusCode === 200) {
       toast.add({

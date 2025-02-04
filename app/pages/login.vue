@@ -1,38 +1,13 @@
 <script setup lang="ts">
-const { loggedIn, user, fetch: refreshSession } = useUserSession();
+	definePageMeta({
+		layout: 'auth'
+	})
 
-const credentials = reactive({
-  email: "",
-  password: "",
-});
-
-async function login() {
-  try {
-    const res = await $fetch("/api/auth/login", {
-      method: "POST",
-      body: credentials,
-    });
-
-    console.log(res);
-
-    if (res.statusCode === 200) {
-      await refreshSession();
-      const d = await navigateTo("/");
-    }
-  } catch (e) {
-    console.log(e);
-  }
-}
+	useSeoMeta({
+		title: 'Login'
+	})
 </script>
 
 <template>
-  <form @submit.prevent="login">
-    <input v-model="credentials.email" type="email" placeholder="Email" />
-    <input
-      v-model="credentials.password"
-      type="password"
-      placeholder="Password"
-    />
-    <button type="submit">Login</button>
-  </form>
+	<LoginForm />
 </template>

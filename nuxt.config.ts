@@ -1,47 +1,58 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  future: { compatibilityVersion: 4 },
+	future: { compatibilityVersion: 4 },
 
-  modules: [
-    "@nuxthub/core",
-    "@formkit/nuxt",
-    "@pinia/nuxt",
-    "nuxt-auth-utils",
-    "@nuxt/ui",
-    "@vueuse/nuxt",
-  ],
+	modules: [
+		'@nuxthub/core',
+		'@pinia/nuxt',
+		'nuxt-auth-utils',
+		'@nuxt/ui-pro',
+		'@vueuse/nuxt'
+	],
 
-  hub: {
-    database: true,
-  },
+	hub: {
+		database: true
+	},
 
-  css: ["~/assets/css/main.css"],
-  $development: {
-    hub: {
-      remote: true,
-    },
-  },
+	css: ['~/assets/css/main.css'],
+	$development: {
+		hub: {
+			remote: true
+		}
+	},
 
-  runtimeConfig: {
-    public: {
-      helloText: "Hello from the Edge 👋",
-    },
-  },
+	runtimeConfig: {
+		public: {
+			helloText: 'Hello from the Edge 👋'
+		}
+	},
 
-  nitro: {
-    routeRules: {
-      "/sse": { ssr: false },
-    },
-    experimental: {
-      tasks: true,
-    },
-  },
+	nitro: {
+		routeRules: {
+			'/sse': { ssr: false }
+		},
+		scanDirs: ['features'],
+		experimental: {
+			tasks: true
+		}
+	},
+	hooks: {
+		'components:dirs': (dirs) => {
+			dirs.push({
+				path: '@auth/components'
+			})
+			dirs.push({
+				path: '@children/components'
+			})
+		}
+	},
 
-  formkit: {
-    autoImport: true,
-  },
+	alias: {
+		'@auth': '@@/features/auth',
+		'@children': '@@/features/children'
+	},
 
-  devtools: { enabled: true },
+	devtools: { enabled: true },
 
-  compatibilityDate: "2025-01-05",
-});
+	compatibilityDate: '2025-01-05'
+})
