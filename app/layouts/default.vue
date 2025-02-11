@@ -1,5 +1,6 @@
 <template>
-  <UPage>
+  <main class="grid grid-cols-1">
+    <NavBar />
     <slot />
-  </UPage>
+  </main>
 </template>

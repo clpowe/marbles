@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { ZodError } from 'zod'
-import catchError from '~~/server/utils/catchError'
+import { catchError } from '@lib/utils'
 
 const bodySchema = z.object({
 	firstName: z.string(),

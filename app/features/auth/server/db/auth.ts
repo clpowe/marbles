@@ -1,8 +1,21 @@
-import type { SQL } from "drizzle-orm";
-import type { UserInsert } from "~~/server/utils/drizzle";
+export async function findUserByEmail(email: string) {
+  if (!email) {
+    throw new Error("Email is required");
+  }
 
-export async function getAllUsers() {
-  return useDrizzle().select().from(tables.UserTable).all();
+  const [_, user] = await catchError(
+    useDrizzle()
+      .select()
+      .from(tables.UserTable)
+      .where(eq(tables.UserTable.email, email))
+      .get(),
+  );
+
+  if (!user) {
+    throw new Error("Please check your credintials");
+  }
+
+  return user;
 }
 
 export async function createUser(user: UserInsert) {
@@ -18,13 +31,5 @@ export async function createUser(user: UserInsert) {
       password: tables.UserTable.password,
       createdAt: tables.UserTable.createdAt,
     })
-    .get();
-}
-
-export async function findUserByEmail(email: string) {
-  return useDrizzle()
-    .select()
-    .from(tables.UserTable)
-    .where(eq(tables.UserTable.email, email))
     .get();
 }

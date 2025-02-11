@@ -1,58 +1,68 @@
+import { fileURLToPath } from "url";
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-	future: { compatibilityVersion: 4 },
+  future: { compatibilityVersion: 4 },
 
-	modules: [
-		'@nuxthub/core',
-		'@pinia/nuxt',
-		'nuxt-auth-utils',
-		'@nuxt/ui-pro',
-		'@vueuse/nuxt'
-	],
+  modules: [
+    "@nuxthub/core",
+    "@pinia/nuxt",
+    "nuxt-auth-utils",
+    "@nuxt/ui-pro",
+    "@vueuse/nuxt",
+    "nuxt-svgo",
+  ],
 
-	hub: {
-		database: true
-	},
+  hub: {
+    database: true,
+  },
+  svgo: {
+    autoImportPath: "./assets/icons/",
+  },
 
-	css: ['~/assets/css/main.css'],
-	$development: {
-		hub: {
-			remote: true
-		}
-	},
+  css: ["@/assets/css/main.css"],
+  $development: {
+    hub: {
+      remote: true,
+    },
+  },
 
-	runtimeConfig: {
-		public: {
-			helloText: 'Hello from the Edge 👋'
-		}
-	},
+  runtimeConfig: {
+    public: {
+      helloText: "Hello from the Edge 👋",
+    },
+  },
 
-	nitro: {
-		routeRules: {
-			'/sse': { ssr: false }
-		},
-		scanDirs: ['features'],
-		experimental: {
-			tasks: true
-		}
-	},
-	hooks: {
-		'components:dirs': (dirs) => {
-			dirs.push({
-				path: '@auth/components'
-			})
-			dirs.push({
-				path: '@children/components'
-			})
-		}
-	},
+  extends: ["app/features/auth", "app/features/children"],
+  nitro: {
+    routeRules: {
+      "/sse": { ssr: false },
+    },
 
-	alias: {
-		'@auth': '@@/features/auth',
-		'@children': '@@/features/children'
-	},
+    experimental: {
+      tasks: true,
+    },
+  },
 
-	devtools: { enabled: true },
+  typescript: {
+    tsConfig: {
+      compilerOptions: {
+        baseUrl: "./",
+      },
+    },
+  },
 
-	compatibilityDate: '2025-01-05'
-})
+  alias: {
+    "@": "./app",
+    "@server": fileURLToPath(new URL("./server", import.meta.url)),
+    "@auth": fileURLToPath(new URL("app/features/auth", import.meta.url)),
+    "@children": fileURLToPath(
+      new URL("app/features/children", import.meta.url),
+    ),
+    "@lib": fileURLToPath(new URL("./lib", import.meta.url)),
+  },
+
+  devtools: { enabled: true },
+
+  compatibilityDate: "2025-01-05",
+});

@@ -1,13 +1,18 @@
 <script setup lang="ts">
-	definePageMeta({
-		layout: 'auth'
-	})
+import IconLogo from "@/assets/icons/icon-logo.svg";
 
-	useSeoMeta({
-		title: 'Login'
-	})
+definePageMeta({
+  layout: "auth",
+});
+
+useSeoMeta({
+  title: "Login",
+});
 </script>
 
 <template>
-	<LoginForm />
+  <div class="">
+    <icon-logo class="max-w-60" :fontControlled="false" filled />
+    <LoginForm />
+  </div>
 </template>

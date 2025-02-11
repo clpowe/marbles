@@ -1,6 +1,5 @@
 import { defineEventHandler, readBody } from "h3";
-import catchError from "../../utils/catchError";
-import { createChild } from "~~/server/utils/children";
+import { createChild } from "../db/children";
 
 export default defineEventHandler(async (event) => {
   // Parse the request body
@@ -19,7 +18,8 @@ export default defineEventHandler(async (event) => {
   // Insert the child into the database
   const [error, result] = await catchError(
     createChild({
-      firstName,
+      id: "",
+      firstName: firstName,
       lastName,
       motherId,
       fatherId,

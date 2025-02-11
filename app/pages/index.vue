@@ -1,70 +1,68 @@
 <script setup>
-	import { UButton } from '#components'
-	import AddChild from '~/components/AddChild.vue'
+let children = useState("message", () => []);
 
-	const { loggedIn, user, session, fetch, clear } = useUserSession()
+const { data: load } = useFetch("/api/getAll");
+children.value = load;
 
-	let children = useState('message', () => [])
+const { status, data, error, close } = useEventSource("/sse");
 
-	const { data: load } = useFetch('/api/children/getAll')
-	children.value = load
+watch(data, () => {
+  if (data.value === "") return;
+  children.value = JSON.parse(data.value);
+});
 
-	const { status, data, error, close } = useEventSource('/sse')
+const carousel = useTemplateRef("carousel");
 
-	watch(data, () => {
-		if (data.value === '') return
-		children.value = JSON.parse(data.value)
-	})
+function next() {
+  carousel.value.emblaApi.scrollNext();
+}
 
-	onMounted(async () => {
-		onUnmounted(() => {
-			close()
-		})
-	})
+function prev() {
+  carousel.value.emblaApi.scrollPrev();
+}
+
+onMounted(async () => {
+  onUnmounted(() => {
+    close();
+  });
+});
 </script>
 
 <template>
-	<UPage>
-		<UHeader>
-			<template #title>
-				<h1>Welcome {{ user.login }}!</h1>
-				<p>Logged in since {{ session.loggedInAt }}</p>
-			</template>
-
-			<template #right>
-				<div v-if="loggedIn">
-					<UButton @click="clear">Logout</UButton>
-				</div>
-				<div v-else>
-					<h1>Not logged in</h1>
-					<a href="/login">Login</a>
-				</div>
-				<UColorModeButton />
-
-				<UTooltip text="Open on GitHub" :kbds="['meta', 'G']">
-					<UButton
-						color="neutral"
-						variant="ghost"
-						to="https://github.com/nuxt/ui"
-						target="_blank"
-						icon="i-simple-icons-github"
-						aria-label="GitHub"
-					/>
-				</UTooltip>
-			</template>
-		</UHeader>
-		<UPageBody>
-			<section v-if="children">
-				<h2>Children</h2>
-				<UCarousel
-					v-slot="{ item }"
-					:items="children"
-					class="w-full"
-					:ui="{ item: 'basis sm:basis-1/2 md:basis-1/3 lg:basis-1/4' }"
-				>
-					<ChildCard :child="item" />
-				</UCarousel>
-			</section>
-		</UPageBody>
-	</UPage>
+  <div class="actions pointer-events-none">
+    <UButton @click="prev" class="pointer-events-auto">Prev</UButton>
+    <UButton @click="next" class="pointer-events-auto">Next</UButton>
+  </div>
+  <section v-if="children" class="h-full page">
+    <!-- <h2>Children</h2> -->
+    <!-- <ChildCard :key="children[0].id" :child="children[0]" /> -->
+    <ClientOnly>
+      <UCarousel
+        ref="carousel"
+        v-slot="{ item }"
+        :items="children"
+        class="w-full h-full"
+        :ui="{ container: 'h-full' }"
+      >
+        <ChildCard :child="item" />
+      </UCarousel>
+    </ClientOnly>
+  </section>
 </template>
+
+<style scoped>
+.actions {
+  display: flex;
+  justify-content: space-between;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  align-self: center;
+  z-index: 10;
+  padding-inline: 1rem;
+}
+
+.page {
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+}
+</style>

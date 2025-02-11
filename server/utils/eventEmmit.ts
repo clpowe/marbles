@@ -5,7 +5,7 @@ class UpdateEvents extends EventEmitter {
     super();
   }
 
-  new(data) {
+  new(data: unknown) {
     this.emit("new", data);
   }
 }
@@ -14,5 +14,5 @@ const updates = new UpdateEvents();
 
 export default {
   updates,
-  newUpdate: (data) => updates.new(data),
+  newUpdate: (data: unknown) => updates.new(data),
 };

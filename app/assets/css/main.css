@@ -1,2 +1,18 @@
-@import 'tailwindcss';
-@import '@nuxt/ui-pro';
+@import "tailwindcss";
+@import "@nuxt/ui-pro";
+
+body {
+  min-height: 100vh;
+}
+
+main {
+  min-height: calc(100vh - 81px);
+}
+
+header {
+  padding-block: 1rem;
+}
+
+.isolate {
+  height: 100%;
+}
