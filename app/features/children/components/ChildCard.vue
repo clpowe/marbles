@@ -17,31 +17,89 @@ type Child = {
 const props = defineProps<{
   child: Child;
 }>();
+
+async function add() {
+  const res = await $fetch("/api/updateMarbles", {
+    method: "POST",
+    body: JSON.stringify({
+      childId: props.child.id,
+      amount: 1,
+      reason: "Marble transaction",
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+async function subtract() {
+  try {
+    const res = await $fetch("/api/updateMarbles", {
+      method: "POST",
+      body: JSON.stringify({
+        childId: props.child.id,
+        amount: -1,
+        reason: "Marble transaction",
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    balls.value.pop();
+  } catch (e) {
+    console.log(e);
+  }
+}
+
+const isVisible = ref(false);
+
+const slideRef = ref(null);
+
+useIntersectionObserver(
+  slideRef,
+  ([{ isIntersecting }]) => {
+    if (isIntersecting) isVisible.value = true;
+  },
+  { threshold: 0.2 },
+);
 </script>
 
 <template>
+  <!-- <div>
+    <h2>{{ props.child.firstName + " " + props.child.lastName }}</h2>
+    <p>{{ props.child.transactionSum }}</p>
+    <UButtonGroup size="sm" orientation="horizontal">
+      <UButton
+        icon="i-heroicons-chevron-up-20-solid "
+        size="sm"
+        @click="add"
+        variant="outline"
+        class="pointer-events-auto rounded-full"
+      />
+      <UButton
+        icon="i-heroicons-chevron-down-20-solid"
+        size="sm"
+        @click="subtract"
+        variant="outline"
+        class="pointer-events-auto rounded-full"
+      />
+    </UButtonGroup>
+  </div> -->
   <MarbleCanvas
-    class="marble-canvas h-full w-full"
-    :marbles="props.child.transactionSum"
-    :id="props.child.id"
+    ref="slideRef"
+    class="marble-canvas"
+    :marbles="child.transactionSum"
+    :id="child.id"
     :ui="{ item: 'relative' }"
-    :name="props.child.firstName + ' ' + props.child.lastName"
+    :name="child.firstName + ' ' + child.lastName"
   />
 </template>
 
-<style scoped>
-/* .actions {
-  grid-column: 1 / -1;
-  grid-row: 1 / -1;
-  }*/
-.card-title {
-  grid-column: 1 / -1;
-  grid-row: 1 / -1;
-  place-self: center;
+<style>
+.embla__slide {
+  transition: opacity 0.2s ease-in-out;
 }
-.marble-canvas {
-  grid-column: 1 / -1;
-  grid-row: 1 / -1;
-  z-index: 1;
+.embla__slide:not(.is-snapped) {
+  opacity: 0.16;
 }
 </style>

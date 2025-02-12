@@ -1,18 +1,19 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from 'events'
 
-class UpdateEvents extends EventEmitter {
-  constructor() {
-    super();
-  }
-
-  new(data: unknown) {
-    this.emit("new", data);
-  }
+interface UpdateEvents extends EventEmitter {
+	emitNew(data: unknown): void
 }
 
-const updates = new UpdateEvents();
+class UpdateEventsEmitter extends EventEmitter implements UpdateEvents {
+	constructor() {
+		super()
+	}
 
-export default {
-  updates,
-  newUpdate: (data: unknown) => updates.new(data),
-};
+	emitNew(data: unknown) {
+		this.emit('new', data)
+	}
+}
+
+const updates = new UpdateEventsEmitter()
+// Export the instance itself, not an object containing it
+export default updates

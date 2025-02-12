@@ -5,6 +5,7 @@ export default defineNuxtConfig({
   future: { compatibilityVersion: 4 },
 
   modules: [
+    "@tresjs/nuxt",
     "@nuxthub/core",
     "@pinia/nuxt",
     "nuxt-auth-utils",
@@ -38,7 +39,6 @@ export default defineNuxtConfig({
     routeRules: {
       "/sse": { ssr: false },
     },
-
     experimental: {
       tasks: true,
     },

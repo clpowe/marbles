@@ -3,30 +3,46 @@ import updates from "~~/server/utils/eventEmmit";
 
 export default defineEventHandler(async (event) => {
   const eventStream = createEventStream(event);
-  const { user } = await getUserSession(event);
+  const [sessionError, UserSession] = await catchError(getUserSession(event));
 
-  if (!user) {
+  if (!UserSession?.user) {
     throw createError({
       statusCode: 401,
-      message: "User not Found",
+      message: sessionError?.message || "User not Found",
     });
   }
 
-  updates.updates.on("new", async (data) => {
-    const children = await getChildren(user?.id);
-    await eventStream.push(JSON.stringify(children));
-  });
+  // Define the update handler function separately so we can reference it for removal
+  const handleUpdate = async () => {
+    console.log("update received");
+    const [error, children] = await catchError(
+      getChildren(UserSession?.user?.id as string),
+    );
+    if (!error && children) {
+      console.log(children);
+      await eventStream.push({ data: JSON.stringify(children) });
+    }
+  };
 
-  const interval = setInterval(async () => {
-    const children = await getChildren(user?.id);
-    await eventStream.push(JSON.stringify(children));
-  }, 1000);
+  // Add the event listener
+  updates.on("new", handleUpdate);
 
+  // Cleanup when the client disconnects
   eventStream.onClosed(async () => {
-    clearInterval(interval);
-    updates.updates.off("new", () => {});
+    // Remove the specific event listener we added
+    updates.off("new", handleUpdate);
+    // Close the event stream
     await eventStream.close();
   });
+
+  // Initial data fetch
+  const [initialError, initialChildren] = await catchError(
+    getChildren(UserSession.user.id as string),
+  );
+
+  if (!initialError && initialChildren) {
+    await eventStream.push({ data: JSON.stringify(initialChildren) });
+  }
 
   return eventStream.send();
 });

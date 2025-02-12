@@ -29,24 +29,20 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="actions pointer-events-none">
+  <!-- <div class="actions pointer-events-none">
     <UButton @click="prev" class="pointer-events-auto">Prev</UButton>
     <UButton @click="next" class="pointer-events-auto">Next</UButton>
-  </div>
-  <section v-if="children" class="h-full page">
+  </div> -->
+  <section v-if="children" class="">
     <!-- <h2>Children</h2> -->
     <!-- <ChildCard :key="children[0].id" :child="children[0]" /> -->
-    <ClientOnly>
-      <UCarousel
-        ref="carousel"
-        v-slot="{ item }"
-        :items="children"
-        class="w-full h-full"
-        :ui="{ container: 'h-full' }"
-      >
-        <ChildCard :child="item" />
-      </UCarousel>
-    </ClientOnly>
+    <UCarousel
+      v-slot="{ item }"
+      :items="children"
+      class="w-full max-w-xs mx-auto"
+    >
+      <ChildCard :child="item" />
+    </UCarousel>
   </section>
 </template>
 

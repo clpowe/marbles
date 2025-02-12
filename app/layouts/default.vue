@@ -1,5 +1,5 @@
 <template>
-  <main class="grid grid-cols-1">
+  <main class="">
     <NavBar />
     <slot />
   </main>

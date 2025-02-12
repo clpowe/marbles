@@ -23,10 +23,10 @@ function openModal() {
 
 <style scoped>
 header {
-  grid-row: 1 / -1;
-  grid-column: 1 / -1;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 10;
-  margin-top: 1rem;
-  justify-self: center;
 }
 </style>

@@ -1,4 +1,4 @@
-import newUpdate from "~~/server/utils/eventEmmit";
+import updates from "~~/server/utils/eventEmmit";
 
 export default defineEventHandler(async (event) => {
   console.log("updateMarbles");
@@ -12,7 +12,11 @@ export default defineEventHandler(async (event) => {
       amount: body.amount,
       reason: body.reason,
     })
-    .get();
+    .returning();
 
-  newUpdate.newUpdate(res);
+  // Directly use the emitNew method on the updates instance
+  console.log(res);
+  updates.emitNew(res);
+
+  return res;
 });
