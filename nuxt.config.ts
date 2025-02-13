@@ -40,6 +40,7 @@ export default defineNuxtConfig({
       "/sse": { ssr: false },
     },
     experimental: {
+      websocket: true,
       tasks: true,
     },
   },

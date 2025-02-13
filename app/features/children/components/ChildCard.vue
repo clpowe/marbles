@@ -15,7 +15,7 @@ type Child = {
 };
 
 const props = defineProps<{
-  child: Child;
+  id: string;
 }>();
 
 async function add() {
@@ -51,55 +51,26 @@ async function subtract() {
   }
 }
 
-const isVisible = ref(false);
+const { children } = useChildren();
 
-const slideRef = ref(null);
+watch(children, () => {
+  console.log(children.value);
+});
 
-useIntersectionObserver(
-  slideRef,
-  ([{ isIntersecting }]) => {
-    if (isIntersecting) isVisible.value = true;
-  },
-  { threshold: 0.2 },
+const child = computed(() =>
+  children.value.find((child) => child.id === props.id),
 );
 </script>
 
 <template>
-  <!-- <div>
-    <h2>{{ props.child.firstName + " " + props.child.lastName }}</h2>
-    <p>{{ props.child.transactionSum }}</p>
-    <UButtonGroup size="sm" orientation="horizontal">
-      <UButton
-        icon="i-heroicons-chevron-up-20-solid "
-        size="sm"
-        @click="add"
-        variant="outline"
-        class="pointer-events-auto rounded-full"
-      />
-      <UButton
-        icon="i-heroicons-chevron-down-20-solid"
-        size="sm"
-        @click="subtract"
-        variant="outline"
-        class="pointer-events-auto rounded-full"
-      />
-    </UButtonGroup>
-  </div> -->
   <MarbleCanvas
+    v-if="child"
     ref="slideRef"
     class="marble-canvas"
     :marbles="child.transactionSum"
     :id="child.id"
-    :ui="{ item: 'relative' }"
     :name="child.firstName + ' ' + child.lastName"
   />
 </template>
 
-<style>
-.embla__slide {
-  transition: opacity 0.2s ease-in-out;
-}
-.embla__slide:not(.is-snapped) {
-  opacity: 0.16;
-}
-</style>
+<style></style>

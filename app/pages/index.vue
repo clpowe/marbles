@@ -1,5 +1,8 @@
 <script setup>
-let children = useState("message", () => []);
+import { useChildrenStore } from "~/store/childrenStore";
+const { children: c, subscribeToSSE } = useChildrenStore();
+
+const { children } = useChildren();
 
 const { data: load } = useFetch("/api/getAll");
 children.value = load;
@@ -26,6 +29,8 @@ onMounted(async () => {
     close();
   });
 });
+
+subscribeToSSE();
 </script>
 
 <template>
@@ -34,15 +39,22 @@ onMounted(async () => {
     <UButton @click="next" class="pointer-events-auto">Next</UButton>
   </div> -->
   <section v-if="children" class="">
+    <NuxtLink
+      :to="`child/${child.id}`"
+      v-for="child in children"
+      :key="child.id"
+      >{{ child.firstName }}</NuxtLink
+    >
+    {{ c }}
     <!-- <h2>Children</h2> -->
     <!-- <ChildCard :key="children[0].id" :child="children[0]" /> -->
-    <UCarousel
+    <!-- <UCarousel
       v-slot="{ item }"
       :items="children"
       class="w-full max-w-xs mx-auto"
     >
       <ChildCard :child="item" />
-    </UCarousel>
+    </UCarousel> -->
   </section>
 </template>
 
