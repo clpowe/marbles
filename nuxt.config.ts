@@ -3,7 +3,6 @@ import { fileURLToPath } from "url";
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   future: { compatibilityVersion: 4 },
-
   modules: [
     "@tresjs/nuxt",
     "@nuxthub/core",
@@ -36,9 +35,6 @@ export default defineNuxtConfig({
 
   extends: ["app/features/auth", "app/features/children"],
   nitro: {
-    routeRules: {
-      "/sse": { ssr: false },
-    },
     experimental: {
       websocket: true,
       tasks: true,

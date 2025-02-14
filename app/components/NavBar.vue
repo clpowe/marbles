@@ -12,9 +12,12 @@ function openModal() {
 
 <template>
   <header class="pointer-events-none">
-    <NuxtLink to="login" class="pointer-events-auto">
+    <NuxtLink to="/" class="pointer-events-auto">
       <icon-logo2 class="h-6" :fontControlled="false" filled />
     </NuxtLink>
+    <UButton v-if="!loggedIn" to="login" class="pointer-events-auto"
+      >Log in</UButton
+    >
     <UButton v-if="loggedIn" @click="clear" class="pointer-events-auto"
       >Log Out</UButton
     >

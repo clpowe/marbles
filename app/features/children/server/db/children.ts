@@ -7,6 +7,7 @@ import {
 import { eq, sum, sql } from "drizzle-orm";
 
 export async function getChildren(userId: string) {
+  console.log(userId);
   const res = await useDrizzle()
     .select({
       id: ChildrenTable.id,

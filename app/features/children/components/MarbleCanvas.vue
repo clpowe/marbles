@@ -1,15 +1,14 @@
 <script setup lang="ts">
 const { id, marbles } = defineProps<{
-  marbles: Number;
-  name: String;
-  id: String;
+  marbles: number;
+  name: string;
+  id: string;
 }>();
 
 import Matter from "matter-js";
 import confetti from "canvas-confetti";
 
 const canvasWrapper = useTemplateRef("canvasWrapper");
-const targetIsVisible = useElementVisibility(canvasWrapper);
 
 const { width, height } = useElementBounding(canvasWrapper);
 const THICCNESS = 60;
@@ -20,15 +19,18 @@ const Runner = Matter.Runner;
 const Bodies = Matter.Bodies;
 const Composite = Matter.Composite;
 
-let engine, render, runner, leftWall;
-let rightWall;
-let ground;
-const balls = ref([]);
+let engine: Matter.Engine,
+  render: Matter.Render,
+  runner: Matter.Runner,
+  leftWall: Matter.Body;
+let rightWall: Matter.Body;
+let ground: Matter.Body;
+const balls = ref<Matter.Body[]>([]);
 
 onMounted(() => {
   engine = Engine.create();
   render = Render.create({
-    element: canvasWrapper.value,
+    element: canvasWrapper.value ?? undefined,
     engine: engine,
     options: {
       width: width.value,
@@ -39,9 +41,9 @@ onMounted(() => {
   });
 
   for (let i = 0; i < marbles; i++) {
-    let circle = Bodies.circle(i, 10, 50, {
-      friction: 0.3,
-      frictionAir: 0.00001,
+    let circle: Matter.Body = Bodies.circle(i, 10, 50, {
+      friction: 0.5,
+      frictionAir: 0.001,
       restitution: 0.8,
     });
 
@@ -81,7 +83,7 @@ onMounted(() => {
   let mouseConstraint = Matter.MouseConstraint.create(engine, {
     mouse: mouse,
     constraint: {
-      stiffness: 0.2,
+      stiffness: 0.5,
       render: {
         visible: false,
       },
@@ -112,9 +114,9 @@ watch([width, height], () => {
 });
 
 watch(
-  () => marbles.value,
+  () => marbles,
   (newId, oldId, onCleanup) => {
-    console.log(newId.value);
+    console.log(newId);
     onCleanup(() => {
       // cleanup logic
     });
@@ -134,14 +136,14 @@ async function add() {
     },
   });
 
-  let circle = Bodies.circle(25, 10, 50, {
-    friction: 0.3,
-    frictionAir: 0.00001,
+  let circle: Matter.Body = Bodies.circle(25, 10, 50, {
+    friction: 0.5,
+    frictionAir: 0.001,
     restitution: 0.8,
   });
 
   balls.value.push(circle);
-  Composite.add(engine.world, balls.value[balls.value.length - 1]);
+  Composite.add(engine.world, balls.value[balls.value.length - 1]!!);
 }
 
 async function subtract() {
@@ -157,8 +159,9 @@ async function subtract() {
         "Content-Type": "application/json",
       },
     });
-    const ball = balls.value.pop();
-    const { position } = ball;
+    const ball: Matter.Body | undefined = balls.value.pop();
+    if (!ball) return;
+    const { position } = ball as Matter.Body;
     createConfettiExplosion(position.x, position.y);
     Composite.remove(engine.world, ball);
   } catch (e) {
@@ -167,7 +170,7 @@ async function subtract() {
 }
 
 // Function to create confetti explosion using Confetti.js
-const createConfettiExplosion = (x, y) => {
+const createConfettiExplosion = (x: number, y: number) => {
   confetti({
     particleCount: 50,
     spread: 70,
@@ -187,18 +190,21 @@ onMounted(() => {});
 <template>
   <div ref="canvasWrapper" class="canvas-wrapper relative">
     <div class="marbles">
-      <p>{{ marbles }}</p>
-      <UButtonGroup size="sm" orientation="horizontal">
+      <p class="text-8xl font-bold">{{ marbles }}</p>
+      <h1 class="text-4xl font-bold">
+        {{ name }}
+      </h1>
+      <UButtonGroup size="lg" orientation="horizontal">
         <UButton
           icon="i-heroicons-chevron-up-20-solid"
-          size="sm"
+          size="xl"
           @click="add"
           variant="outline"
           class="pointer-events-auto rounded-full"
         />
         <UButton
           icon="i-heroicons-chevron-down-20-solid"
-          size="sm"
+          size="xl"
           @click="subtract"
           variant="outline"
           class="pointer-events-auto rounded-full"
@@ -215,6 +221,19 @@ onMounted(() => {});
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+h1 {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+p {
+  font-size: 9rem;
+  font-weight: 800;
+  line-height: 1;
 }
 .canvas-wrapper {
   width: 100%;
