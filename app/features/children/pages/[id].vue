@@ -7,10 +7,19 @@
 	const { children, getChildren } = await useChildren()
 	await getChildren()
 
-	const child = computed(() =>
-		children.value.find((child) => child.id === route.params.id)
-	)
-
+	const child = computed(() => {
+		if (children.value) {
+			return children.value.find((child) => child.id === route.params.id)
+		} else {
+			return {
+				id: '',
+				firstName: '',
+				lastName: '',
+				transactionSum: 0
+			}
+		}
+	})
+	console.log(child.value)
 	const canvasWrapper = useTemplateRef('canvasWrapper')
 
 	const { width, height } = useElementBounding(canvasWrapper)
@@ -31,6 +40,8 @@
 	const balls = ref<Matter.Body[]>([])
 
 	onMounted(() => {
+		console.log(child.value)
+
 		engine = Engine.create()
 		render = Render.create({
 			element: canvasWrapper.value ?? undefined,
@@ -44,7 +55,8 @@
 		})
 
 		for (let i = 0; i < child.value.transactionSum; i++) {
-			let circle: Matter.Body = Bodies.circle(i, 10, 50, {
+			const centerX = width.value / 2
+			let circle: Matter.Body = Bodies.circle(centerX, 10, 50, {
 				friction: 0.5,
 				frictionAir: 0.001,
 				restitution: 0.8
@@ -99,6 +111,35 @@
 		Render.run(render)
 		runner = Runner.create()
 		Runner.run(runner, engine)
+
+		render.canvas.addEventListener('dblclick', (event: MouseEvent) => {
+			const rect = render.canvas.getBoundingClientRect()
+			const mousePos = {
+				x: event.clientX - rect.left,
+				y: event.clientY - rect.top
+			}
+			const clickedBodies = Matter.Query.point(balls.value, mousePos)
+			console.log(clickedBodies[0])
+			if (clickedBodies.length) {
+				const bodyToRemove = clickedBodies[0]
+				if (!bodyToRemove) return
+				Composite.remove(engine.world, bodyToRemove)
+				balls.value = balls.value.filter((b) => b !== bodyToRemove)
+				child.value.transactionSum-- // update state if needed
+				createConfettiExplosion(mousePos.x, mousePos.y)
+				$fetch('/api/updateMarbles', {
+					method: 'POST',
+					body: JSON.stringify({
+						childId: route.params.id,
+						amount: -1,
+						reason: 'Marble transaction'
+					}),
+					headers: {
+						'Content-Type': 'application/json'
+					}
+				})
+			}
+		})
 	})
 
 	watch([width, height], () => {
@@ -137,8 +178,8 @@
 					(child) => child.id === route.params.id
 				)
 				children.value[idx] = child.value
-
-				let circle: Matter.Body = Bodies.circle(25, 10, 50, {
+				const centerX = width.value / 2
+				let circle: Matter.Body = Bodies.circle(centerX, 10, 50, {
 					friction: 0.5,
 					frictionAir: 0.001,
 					restitution: 0.8

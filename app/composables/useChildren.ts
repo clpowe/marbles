@@ -14,9 +14,22 @@ export const useChildren = async () => {
 	})
 
 	watch(data, () => {
-		if (data.value === '') return
-		children.value = JSON.parse(data.value as string)
+		if (status.value == 'OPEN') {
+			children.value = JSON.parse(data.value as string)
+			return
+		}
+
+		if (status.value == 'CONNECTING') {
+			children.value = []
+			return
+		}
+
+		if (status.value == 'CLOSED') {
+			children.value = []
+		}
 	})
+
+	watch(status, () => {})
 
 	async function getChildren() {
 		const res = $fetch('/api/getAll')
