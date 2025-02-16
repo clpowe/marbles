@@ -7,6 +7,10 @@
 	const { children, getChildren } = await useChildren()
 	await getChildren()
 
+	// Handle touch double-taps
+	let lastTapTime = 0
+	const DOUBLE_TAP_DELAY = 300 // milliseconds
+
 	const child = computed(() => {
 		if (children.value) {
 			return children.value.find((child) => child.id === route.params.id)
@@ -114,31 +118,26 @@
 
 		render.canvas.addEventListener('dblclick', (event: MouseEvent) => {
 			const rect = render.canvas.getBoundingClientRect()
-			const mousePos = {
+			const pos = {
 				x: event.clientX - rect.left,
 				y: event.clientY - rect.top
 			}
-			const clickedBodies = Matter.Query.point(balls.value, mousePos)
-			console.log(clickedBodies[0])
-			if (clickedBodies.length) {
-				const bodyToRemove = clickedBodies[0]
-				if (!bodyToRemove) return
-				Composite.remove(engine.world, bodyToRemove)
-				balls.value = balls.value.filter((b) => b !== bodyToRemove)
-				child.value.transactionSum-- // update state if needed
-				createConfettiExplosion(mousePos.x, mousePos.y)
-				$fetch('/api/updateMarbles', {
-					method: 'POST',
-					body: JSON.stringify({
-						childId: route.params.id,
-						amount: -1,
-						reason: 'Marble transaction'
-					}),
-					headers: {
-						'Content-Type': 'application/json'
-					}
-				})
+			handleDoubleEvent(pos.x, pos.y)
+		})
+
+		render.canvas.addEventListener('touchend', (event: TouchEvent) => {
+			const currentTime = Date.now()
+			if (currentTime - lastTapTime < DOUBLE_TAP_DELAY) {
+				const touch = event.changedTouches[0]
+				const rect = render.canvas.getBoundingClientRect()
+				const pos = {
+					x: touch.clientX - rect.left,
+					y: touch.clientY - rect.top
+				}
+				handleDoubleEvent(pos.x, pos.y)
+				event.preventDefault() // prevent simulated mouse events
 			}
+			lastTapTime = currentTime
 		})
 	})
 
@@ -226,6 +225,28 @@
 			})
 		} catch (e) {
 			console.log(e)
+		}
+	}
+
+	function handleDoubleEvent(x: number, y: number) {
+		const clickedBodies = Matter.Query.point(balls.value, { x, y })
+		console.log(clickedBodies[0])
+		if (clickedBodies.length) {
+			const bodyToRemove = clickedBodies[0]
+			if (!bodyToRemove) return
+			Composite.remove(engine.world, bodyToRemove)
+			balls.value = balls.value.filter((b) => b !== bodyToRemove)
+			child.value.transactionSum-- // update state if needed
+			createConfettiExplosion(x, y)
+			$fetch('/api/updateMarbles', {
+				method: 'POST',
+				body: JSON.stringify({
+					childId: route.params.id,
+					amount: -1,
+					reason: 'Marble transaction'
+				}),
+				headers: { 'Content-Type': 'application/json' }
+			})
 		}
 	}
 
