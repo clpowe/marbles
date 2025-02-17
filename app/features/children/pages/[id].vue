@@ -60,7 +60,8 @@
 
 		for (let i = 0; i < child.value.transactionSum; i++) {
 			const centerX = width.value / 2
-			let circle: Matter.Body = Bodies.circle(centerX, 10, 50, {
+
+			let circle: Matter.Body = Bodies.circle(centerX, 10, size(30, 80), {
 				friction: 0.5,
 				frictionAir: 0.001,
 				restitution: 0.8
@@ -178,7 +179,7 @@
 				)
 				children.value[idx] = child.value
 				const centerX = width.value / 2
-				let circle: Matter.Body = Bodies.circle(centerX, 10, 50, {
+				let circle: Matter.Body = Bodies.circle(centerX, 10, size(30, 80), {
 					friction: 0.5,
 					frictionAir: 0.001,
 					restitution: 0.8
@@ -258,6 +259,10 @@
 			origin: { x: x / width.value, y: y / height.value }, // Convert coordinates to percentages
 			colors: ['#ff4757', '#1abc9c', '#f9ca24', '#e056fd', '#ff9f1a']
 		})
+	}
+
+	const size = function getRandomArbitrary(min, max) {
+		return Math.random() * (max - min) + min
 	}
 
 	onUnmounted(() => {
