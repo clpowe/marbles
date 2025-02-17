@@ -293,7 +293,7 @@
 	</div>
 </template>
 
-<style>
+<style scoped>
 	.marbles {
 		position: absolute;
 		top: 50%;

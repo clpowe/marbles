@@ -1,200 +1,268 @@
-<script setup>
-import { onMounted, onUnmounted, watchEffect, useTemplateRef, ref } from "vue";
-import { useWindowSize } from "@vueuse/core";
-import Matter from "matter-js";
-import confetti from "canvas-confetti";
+<script setup lang="ts">
+	import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+	import planck from 'planck-js'
+	import * as PIXI from 'pixi.js'
+	import confetti from 'canvas-confetti'
 
-// Reactive window size
-const { width, height } = useWindowSize();
-const canvasRef = useTemplateRef("canvas");
+	const route = useRoute()
+	const { children, getChildren } = await useChildren()
+	await getChildren()
 
-let engine, render;
-const balls = ref([]); // Store added balls
+	const child = computed(() =>
+		children.value.find((c) => c.id === '9cc64e56-eb8d-4246-8d67-125716a25461')
+	)
+	const canvasWrapper = useTemplateRef('canvasWrapper')
+	const { width, height } = useElementBounding(canvasWrapper)
 
-// Initialize Matter.js
-onMounted(() => {
-  const canvas = canvasRef.value;
-  if (!canvas) return;
+	const THICCNESS = 60 // pixels
+	const scale = 30 // pixels per meter
 
-  engine = Matter.Engine.create();
-  render = Matter.Render.create({
-    canvas,
-    engine,
-    options: {
-      width: width.value,
-      height: height.value - 60, // Adjust for header
-      wireframes: false,
-      background: "#f4f4f4",
-    },
-  });
+	let world: planck.World
+	let pixiApp: PIXI.Application
+	let ground: planck.Body, leftWall: planck.Body, rightWall: planck.Body
+	const balls = ref<planck.Body[]>([])
+	const ballGraphics = new Map<planck.Body, PIXI.Graphics>()
 
-  // Ground (Static)
-  const ground = Matter.Bodies.rectangle(
-    width.value / 2,
-    height.value - 80,
-    width.value,
-    40,
-    {
-      isStatic: true,
-      render: { fillStyle: "#333" },
-    },
-  );
+	onMounted(async () => {
+		// Create Pixi Application
+		pixiApp = new PIXI.Application()
 
-  Matter.World.add(engine.world, [ground]);
-  Matter.Engine.run(engine);
-  Matter.Render.run(render);
+		await pixiApp.init({
+			width: width.value,
+			height: height.value,
+			transparent: true
+		})
 
-  // Collision detection
-  Matter.Events.on(engine, "collisionStart", (event) => {
-    event.pairs.forEach((pair) => {
-      if (pair.bodyA.render && pair.bodyB.render) {
-        pair.bodyA.render.fillStyle = "#2ecc71"; // Change color on collision
-        pair.bodyB.render.fillStyle = "#2ecc71";
-      }
-    });
-  });
-});
+		canvasWrapper.value.appendChild(pixiApp.canvas)
+		// Create Planck.js world with gravity
+		world = planck.World({ gravity: planck.Vec2(0, 10) })
+		// Create boundaries
+		ground = world.createBody({
+			type: 'static',
+			position: planck.Vec2(
+				width.value / 2 / scale,
+				(height.value + THICCNESS / 2) / scale
+			)
+		})
+		ground.createFixture(
+			planck.Box((width.value * 10) / scale, THICCNESS / 2 / scale)
+		)
+		leftWall = world.createBody({
+			type: 'static',
+			position: planck.Vec2(
+				(0 - THICCNESS / 2) / scale,
+				height.value / 2 / scale
+			)
+		})
+		leftWall.createFixture(
+			planck.Box(THICCNESS / 2 / scale, (height.value * 5) / scale)
+		)
+		rightWall = world.createBody({
+			type: 'static',
+			position: planck.Vec2(
+				(width.value + THICCNESS / 2) / scale,
+				height.value / 2 / scale
+			)
+		})
+		rightWall.createFixture(
+			planck.Box(THICCNESS / 2 / scale, (height.value * 5) / scale)
+		)
+		// Create initial balls
+		for (let i = 0; i < child.value.transactionSum; i++) {
+			const ball = world.createDynamicBody({
+				position: planck.Vec2((i * 60 + 25) / scale, 10 / scale),
+				linearDamping: 0.001
+			})
+			ball.createFixture(planck.Circle(50 / scale), {
+				friction: 0.5,
+				restitution: 0.8
+			})
+			balls.value.push(ball)
+			// Create a Pixi Graphics for the ball
+			const gfx = new PIXI.Graphics()
+			gfx.beginFill(0xff4757)
+			gfx.drawCircle(0, 0, 50)
+			gfx.endFill()
+			gfx.x = ball.getPosition().x * scale
+			gfx.y = ball.getPosition().y * scale
+			pixiApp.stage.addChild(gfx)
+			ballGraphics.set(ball, gfx)
+		}
+		// Use Pixi's ticker as the simulation loop
+		pixiApp.ticker.add(() => {
+			world.step(1 / 60)
 
-// Watch for window size changes and resize canvas dynamically
-watchEffect(() => {
-  if (render) {
-    render.canvas.width = width.value;
-    render.canvas.height = height.value - 60;
-  }
-});
+			ballGraphics.forEach((gfx, ball) => {
+				const pos = ball.getPosition()
+				gfx.x = pos.x * scale
+				gfx.y = pos.y * scale
+				gfx.rotation = ball.getAngle()
+			})
+		})
+	})
 
-// Function to add a new ball when button is clicked
-const addBall = () => {
-  const newBall = Matter.Bodies.circle(
-    Math.random() * width.value, // Random x position
-    100, // Start near the top
-    30, // Ball radius
-    {
-      restitution: 0.8,
-      render: { fillStyle: "#e67e22" },
-    },
-  );
-  Matter.World.add(engine.world, newBall);
-  balls.value.push(newBall);
-};
+	watch([width, height], () => {
+		if (pixiApp) {
+			pixiApp.renderer.resize(width.value, height.value)
+		}
+		ground.setPosition(
+			planck.Vec2(
+				width.value / 2 / scale,
+				(height.value + THICCNESS / 2) / scale
+			)
+		)
+		rightWall.setPosition(
+			planck.Vec2(
+				(width.value + THICCNESS / 2) / scale,
+				height.value / 2 / scale
+			)
+		)
+	})
 
-// Function to remove the last added ball and trigger confetti explosion
-const removeLastBall = () => {
-  if (balls.value.length > 0) {
-    const lastBall = balls.value.pop();
-    const { position } = lastBall;
+	let previousChildren = []
 
-    // Create confetti explosion at ball's position
-    createConfettiExplosion(position.x, position.y);
+	async function add() {
+		await $fetch('/api/updateMarbles', {
+			method: 'POST',
+			body: JSON.stringify({
+				childId: '9cc64e56-eb8d-4246-8d67-125716a25461',
+				amount: 1,
+				reason: 'Marble transaction'
+			}),
+			headers: { 'Content-Type': 'application/json' },
+			onRequest() {
+				previousChildren = children.value
+				child.value.transactionSum += 1
+				const idx = children.value.findIndex(
+					(c) => c.id === '9cc64e56-eb8d-4246-8d67-125716a25461'
+				)
+				children.value[idx] = child.value
 
-    Matter.World.remove(engine.world, lastBall);
-  }
-};
+				const ball = world.createDynamicBody({
+					position: planck.Vec2(25 / scale, 10 / scale),
+					linearDamping: 0.001
+				})
+				ball.createFixture(planck.Circle(50 / scale), {
+					friction: 0.5,
+					restitution: 0.8
+				})
+				balls.value.push(ball)
 
-// Function to create confetti explosion using Confetti.js
-const createConfettiExplosion = (x, y) => {
-  confetti({
-    particleCount: 50,
-    spread: 70,
-    origin: { x: x / width.value, y: y / height.value }, // Convert coordinates to percentages
-    colors: ["#ff4757", "#1abc9c", "#f9ca24", "#e056fd", "#ff9f1a"],
-  });
-};
+				const gfx = new PIXI.Graphics()
+				gfx.beginFill(0xff4757)
+				gfx.drawCircle(0, 0, 50)
+				gfx.endFill()
+				gfx.x = ball.getPosition().x * scale
+				gfx.y = ball.getPosition().y * scale
+				pixiApp.stage.addChild(gfx)
+				ballGraphics.set(ball, gfx)
+			},
+			onResponseError() {
+				children.value = previousChildren
+			}
+		})
+	}
 
-// Cleanup on unmount
-onUnmounted(() => {
-  Matter.Render.stop(render);
-  Matter.Engine.clear(engine);
-});
+	async function subtract() {
+		try {
+			await $fetch('/api/updateMarbles', {
+				method: 'POST',
+				body: JSON.stringify({
+					childId: '9cc64e56-eb8d-4246-8d67-125716a25461',
+					amount: -1,
+					reason: 'Marble transaction'
+				}),
+				headers: { 'Content-Type': 'application/json' },
+				onRequest() {
+					previousChildren = children.value
+					child.value.transactionSum -= 1
+					const idx = children.value.findIndex(
+						(c) => c.id === '9cc64e56-eb8d-4246-8d67-125716a25461'
+					)
+					children.value[idx] = child.value
+
+					const ball = balls.value.pop()
+					if (!ball) return
+					const pos = ball.getPosition()
+					createConfettiExplosion(pos.x * scale, pos.y * scale)
+					world.destroyBody(ball)
+
+					const gfx = ballGraphics.get(ball)
+					if (gfx) {
+						pixiApp.stage.removeChild(gfx)
+						ballGraphics.delete(ball)
+					}
+				},
+				onResponseError() {
+					children.value = previousChildren
+				}
+			})
+		} catch (e) {
+			console.log(e)
+		}
+	}
+
+	const createConfettiExplosion = (x: number, y: number) => {
+		confetti({
+			particleCount: 50,
+			spread: 70,
+			origin: { x: x / pixiApp.canvas.width, y: y / pixiApp.canvas.height },
+			colors: ['#ff4757', '#1abc9c', '#f9ca24', '#e056fd', '#ff9f1a']
+		})
+	}
+
+	onUnmounted(() => {
+		pixiApp.destroy(true, { children: true })
+	})
 </script>
 
 <template>
-  <div class="container">
-    <div class="header">
-      <span>My Nuxt App</span>
-      <div class="button-group">
-        <button @click="addBall" class="add-ball-button">Add Ball</button>
-        <button @click="removeLastBall" class="remove-ball-button">
-          Remove Ball
-        </button>
-      </div>
-    </div>
-    <div class="card">
-      <canvas ref="canvas"></canvas>
-    </div>
-  </div>
+	<div ref="canvasWrapper" class="canvas-wrapper relative">
+		<div class="marbles">
+			<!-- <p class="text-8xl font-bold">{{ child.transactionSum }}</p>
+			<h1 class="text-4xl font-bold">{{ child.firstName }}</h1> -->
+			<UButtonGroup size="lg" orientation="horizontal">
+				<UButton
+					icon="i-heroicons-chevron-up-20-solid"
+					size="xl"
+					@click="add"
+					variant="outline"
+					class="pointer-events-auto rounded-full"
+				/>
+				<UButton
+					icon="i-heroicons-chevron-down-20-solid"
+					size="xl"
+					@click="subtract"
+					variant="outline"
+					class="pointer-events-auto rounded-full"
+				/>
+			</UButtonGroup>
+		</div>
+	</div>
 </template>
 
 <style scoped>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.container {
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
-}
-
-.header {
-  width: 100%;
-  height: 60px;
-  background: #333;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  font-size: 20px;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 10;
-}
-
-.button-group {
-  display: flex;
-  gap: 10px;
-}
-
-.add-ball-button,
-.remove-ball-button {
-  border: none;
-  color: white;
-  padding: 10px 15px;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background 0.2s;
-}
-
-.add-ball-button {
-  background: #e67e22;
-}
-
-.add-ball-button:hover {
-  background: #d35400;
-}
-
-.remove-ball-button {
-  background: #c0392b;
-}
-
-.remove-ball-button:hover {
-  background: #a93226;
-}
-
-.card {
-  position: absolute;
-  top: 60px; /* Below the header */
-  left: 0;
-  width: 100%;
-  height: calc(100vh - 60px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f4f4f4;
-}
+	.marbles {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		z-index: 10;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	h1 {
+		font-size: 2rem;
+		font-weight: 800;
+	}
+	p {
+		font-size: 9rem;
+		font-weight: 800;
+		line-height: 1;
+	}
+	.canvas-wrapper {
+		width: 100%;
+		height: 100dvh;
+	}
 </style>
