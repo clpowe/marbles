@@ -12,15 +12,6 @@ class UpdateEventsEmitter extends EventEmitter implements UpdateEvents {
 	emitNew(data: unknown) {
 		this.emit('new', data)
 	}
-
-	// Optional: Wrapper methods for adding and removing listeners
-	addNewListener(listener: (data: unknown) => void) {
-		this.on('new', listener)
-	}
-
-	removeNewListener(listener: (data: unknown) => void) {
-		this.off('new', listener)
-	}
 }
 
 const updates = new UpdateEventsEmitter()
