@@ -20,7 +20,6 @@ export default defineEventHandler(async (event) => {
 
 	eventStream.onClosed(async () => {
 		updates.off('new', updateChildren)
-		updates.removeListener('new', updateChildren)
 		await eventStream.close()
 	})
 

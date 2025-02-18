@@ -9,7 +9,6 @@ export const useChildren = async () => {
 	const children = useState<Child[]>('children', () => [])
 
 	const { status, data, error, close } = useEventSource('/sse', [], {
-		autoReconnect: true,
 		immediate: true
 	})
 
@@ -26,6 +25,7 @@ export const useChildren = async () => {
 
 		if (status.value == 'CLOSED') {
 			children.value = []
+			return
 		}
 	})
 
