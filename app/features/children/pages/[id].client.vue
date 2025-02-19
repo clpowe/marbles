@@ -4,8 +4,7 @@
 
 	const route = useRoute()
 
-	const { children, getChildren } = await useChildren()
-	await getChildren()
+	const { children,handleClose } = await useChildren()
 
 	// Handle touch double-taps
 	let lastTapTime = 0
@@ -266,6 +265,7 @@
 	}
 
 	onUnmounted(() => {
+		handleClose()
 		Matter.Render.stop(render)
 		Matter.Engine.clear(engine)
 	})
