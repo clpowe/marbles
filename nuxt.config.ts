@@ -4,14 +4,15 @@ import { fileURLToPath } from 'url'
 export default defineNuxtConfig({
 	future: { compatibilityVersion: 4 },
 	modules: [
+		'@tresjs/nuxt',
 		'@nuxthub/core',
+		'@pinia/nuxt',
 		'nuxt-auth-utils',
-		// '@nuxt/ui-pro',
-		'@vueuse/nuxt'
-		// '@nuxt/icon'
-		// 'nuxt-svgo'
+		'@nuxt/ui-pro',
+		'@vueuse/nuxt',
+		'nuxt-svgo'
 	],
-	ssr: false,
+
 	hub: {
 		database: true
 	},
@@ -35,12 +36,11 @@ export default defineNuxtConfig({
 	extends: ['app/features/auth', 'app/features/children'],
 	nitro: {
 		routeRules: {
-			'/sse': { ssr: false },
-			'/websocket': { ssr: false }
+			'/sse': { ssr: false }
 		},
 		experimental: {
-			websocket: true
-			//tasks: true
+			websocket: true,
+			tasks: true
 		}
 	},
 
