@@ -4,15 +4,13 @@ import { fileURLToPath } from 'url'
 export default defineNuxtConfig({
 	future: { compatibilityVersion: 4 },
 	modules: [
-		'@tresjs/nuxt',
 		'@nuxthub/core',
-		'@pinia/nuxt',
 		'nuxt-auth-utils',
-		'@nuxt/ui-pro',
 		'@vueuse/nuxt',
-		'nuxt-svgo'
+		'nuxt-svgo',
+		'@nuxt/ui-pro'
 	],
-
+	ssr: false,
 	hub: {
 		database: true
 	},

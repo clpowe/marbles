@@ -23,21 +23,6 @@
 				label: `${child.firstName}`,
 				to: `/${child.id}`
 			}))
-	const { children } = await useChildren()
-	type Child = {
-		id: string
-		firstName: string
-		lastName: string
-		transactionSum: number
-	}
-
-	const items = ref([])
-	const { data, status } = await useFetch('/api/getAll', {
-		transform: (data: Child[]) => {
-			const Kids = data.map((child) => ({
-				label: `${child.firstName}`,
-				to: `/${child.id}`
-			}))
 
 			return [
 				{
@@ -52,14 +37,7 @@
 				},
 				{
 					label: 'logout',
-					icon: 'i-lucide-log-out',
-
-					onSelect: (e) => clear()
-				}
-			]
-		}
-	})
-					onSelect: (e) => clear()
+					icon: 'i-lucide-log-out'
 				}
 			]
 		}
