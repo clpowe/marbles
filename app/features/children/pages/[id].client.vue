@@ -4,7 +4,7 @@
 
 	const route = useRoute()
 
-	const { children,handleClose } = await useChildren()
+	const { children, handleClose, add, handleOpen } = await useWebChildren()
 
 	// Handle touch double-taps
 	let lastTapTime = 0
@@ -22,7 +22,6 @@
 			}
 		}
 	})
-	console.log(child.value)
 	const canvasWrapper = useTemplateRef('canvasWrapper')
 
 	const { width, height } = useElementBounding(canvasWrapper)
@@ -43,7 +42,7 @@
 	const balls = ref<Matter.Body[]>([])
 
 	onMounted(() => {
-		console.log(child.value)
+		handleOpen()
 
 		engine = Engine.create()
 		render = Render.create({
@@ -157,39 +156,25 @@
 		)
 	})
 
-	let previousChildren = []
+	let previousChildren: {
+		id: string
+		firstName: string
+		lastName: string
+		transactionSum: number
+	}[] = []
 
-	async function add() {
-		const res = await $fetch('/api/updateMarbles', {
-			method: 'POST',
-			body: JSON.stringify({
-				childId: route.params.id,
-				amount: 1,
-				reason: 'Marble transaction'
-			}),
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			onRequest() {
-				previousChildren = children.value
-				child.value.transactionSum += 1
-				const idx = children.value.findIndex(
-					(child) => child.id === route.params.id
-				)
-				children.value[idx] = child.value
-				const centerX = width.value / 2
-				let circle: Matter.Body = Bodies.circle(centerX, 10, size(30, 80), {
-					friction: 0.5,
-					frictionAir: 0.001,
-					restitution: 0.8
-				})
-				balls.value.push(circle)
-				Composite.add(engine.world, balls.value[balls.value.length - 1]!!)
-			},
-			onResponseError() {
-				children.value = previousChildren
-			}
-		})
+	async function useAdd() {
+		add(
+			route.params.id,
+			previousChildren,
+			balls,
+			Composite,
+			Bodies,
+			width,
+			size,
+			child,
+			engine
+		)
 	}
 
 	async function subtract() {
@@ -282,7 +267,7 @@
 				<UButton
 					icon="i-heroicons-chevron-up-20-solid"
 					size="xl"
-					@click="add"
+					@click="useAdd"
 					variant="outline"
 					class="pointer-events-auto rounded-full"
 				/>
