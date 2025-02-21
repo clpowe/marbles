@@ -1,25 +1,41 @@
 export const useWebChildren = async () => {
-  const children = useState<Child[]>("children", () => []);
+	const children = useState<Child[]>('children', () => [])
 
-  const { status, data, send, open, close } = useWebSocket(
-    `wss://${location.host}/api/websocket`,
-  );
+	const { status, data, send, open, close } = useWebSocket(
+		`wss://${location.host}/api/websocket`,
+		{
+			autoReconnect: {
+				retries: 3,
+				delay: 1000,
 
-  watch(data, (newdata) => {
-    if (status.value === "OPEN") {
-      children.value = JSON.parse(newdata);
-    }
-  });
+				onFailed() {
+					alert('Failed to connect WebSocket after 3 retries')
+				}
+			}
+		}
+	)
 
-  function handleClose() {
-    close();
-  }
+	watch(status, (newdata) => {
+		console.log(status.value)
+	})
 
-  const handleOpen = (event: Event) => {
-    open();
-  };
-  function handleUpdate(event: Event) {
-    send("update");
-  }
-  return { children, handleClose, handleUpdate, handleOpen };
-};
+	watch(data, (newdata) => {
+		if (status.value === 'OPEN') {
+			children.value = JSON.parse(newdata)
+		}
+	})
+
+	open()
+
+	function handleClose() {
+		close()
+	}
+
+	const handleOpen = (event: Event) => {
+		open()
+	}
+	function handleUpdate(event: Event) {
+		send('update')
+	}
+	return { children, handleClose, handleUpdate, handleOpen }
+}
