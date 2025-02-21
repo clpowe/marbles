@@ -81,6 +81,7 @@ export const useWebChildren = async () => {
 			},
 			onResponseError() {
 				children.value = previousChildren
+				send()
 			}
 		})
 	}
