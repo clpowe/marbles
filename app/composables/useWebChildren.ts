@@ -20,9 +20,7 @@ export const useWebChildren = async () => {
 	})
 
 	watch(data, (newdata) => {
-		if (status.value === 'OPEN') {
-			children.value = JSON.parse(newdata)
-		}
+		children.value = JSON.parse(newdata) ?? []
 	})
 
 	open()
