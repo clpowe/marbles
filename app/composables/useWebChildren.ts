@@ -1,3 +1,5 @@
+import { onWatcherCleanup } from 'vue'
+
 export const useWebChildren = async () => {
 	const children = useState<Child[]>('children', () => [])
 
@@ -19,9 +21,17 @@ export const useWebChildren = async () => {
 		console.log(status.value)
 	})
 
-	watch(data, (newdata) => {
-		children.value = JSON.parse(newdata) ?? []
-	})
+	watch(
+		data,
+		(newdata, olddata) => {
+			children.value = JSON.parse(data.value) ?? []
+
+			onWatcherCleanup(() => {
+				close()
+			})
+		},
+		{ deep: true }
+	)
 
 	open()
 
