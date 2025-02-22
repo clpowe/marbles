@@ -2,14 +2,9 @@
 	//const { children, handleClose, getChildren } = await useChildren();
 	// const children = ref([]);
 
-	const { children, handleClose, handleUpdate, handleOpen } =
-		await useWebChildren()
+	const { children, handleOpen } = await useWebChildren()
 
 	// await getChildren();
-
-	onMounted(() => {
-		handleOpen()
-	})
 
 	function next() {
 		send()

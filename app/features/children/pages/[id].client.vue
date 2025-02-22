@@ -4,7 +4,7 @@
 
 	const route = useRoute()
 
-	const { children, handleClose, add, handleOpen } = await useWebChildren()
+	const { children, add } = await useWebChildren()
 
 	// Handle touch double-taps
 	let lastTapTime = 0
@@ -42,8 +42,6 @@
 	const balls = ref<Matter.Body[]>([])
 
 	onMounted(() => {
-		handleOpen()
-
 		engine = Engine.create()
 		render = Render.create({
 			element: canvasWrapper.value ?? undefined,
@@ -250,7 +248,6 @@
 	}
 
 	onUnmounted(() => {
-		handleClose()
 		Matter.Render.stop(render)
 		Matter.Engine.clear(engine)
 	})

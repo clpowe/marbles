@@ -35,8 +35,7 @@ export default defineNuxtConfig({
 	extends: ['app/features/auth', 'app/features/children'],
 	nitro: {
 		routeRules: {
-			'/sse': { ssr: false },
-			'/websocket': { ssr: false }
+			'/sse': { ssr: false }
 		},
 		experimental: {
 			websocket: true,
