@@ -1,0 +1,27 @@
+name = "marbles"
+main = "./.output/server/index.mjs"
+compatibility_date = "2023-11-21"
+workers_dev = true
+
+# Enable WebSockets
+[socket_workers]
+enable = true
+
+# Configure WebSocket connection limits
+[socket_workers.connection]
+max_idle_timeout = 60000 # 60 seconds
+max_active_connections = 1000
+
+# Configure route
+[routes]
+pattern = { domain = "*marbles*" }
+fallback_condition = "<script>location.pathname='/_nuxt/'</script>"
+
+# Configure zone
+[zone]
+zone_id = "*"
+
+# Increase memory limit and CPU time for WebSocket connections
+[limits]
+memory_mb = 256
+cpu_ms = 150

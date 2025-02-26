@@ -35,11 +35,25 @@ export default defineNuxtConfig({
 	extends: ['app/features/auth', 'app/features/children'],
 	nitro: {
 		routeRules: {
-			'/sse': { ssr: false }
+			'/sse': { ssr: false },
+			'/api/websocket': { 
+				ssr: false,
+				headers: {
+					'Access-Control-Allow-Origin': '*',
+					'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
+					'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+				} 
+			}
 		},
 		experimental: {
 			websocket: true,
 			tasks: true
+		},
+		cloudflare: {
+			workers: {
+				enableWebsockets: true,
+				unsafeEval: true // Needed for some WebSocket operations
+			}
 		}
 	},
 
