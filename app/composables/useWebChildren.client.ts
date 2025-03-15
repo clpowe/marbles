@@ -73,7 +73,9 @@ export const useWebChildren = async () => {
 			previousChildren = originalChildren
 			child.value.transactionSum += 1
 			const idx = children.value.findIndex((c) => c.id === id)
-			children.value[idx] = child.value
+			if (idx !== -1) {
+				children.value[idx] = child.value
+			}
 
 			// Add the physics ball
 			const centerX = width.value / 2
@@ -83,7 +85,7 @@ export const useWebChildren = async () => {
 				restitution: 0.8
 			})
 			balls.value.push(circle)
-			Composite.add(engine.world, balls.value[balls.value.length - 1])
+			Composite.add(engine.world, circle)
 
 			// Send the API request
 			const res = await fetch('/api/updateMarbles', {

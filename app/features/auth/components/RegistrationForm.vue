@@ -18,8 +18,18 @@
 		lastName: z.string().min(3, 'Must be at least 3 characters'),
 		email: z.string().email('Invalid email'),
 		sex: z.string(),
-		password: z.string().min(8, 'Must be at least 8 characters'),
-		passwordConfirmation: z.string().min(8, 'Must be at least 8 characters')
+		password: z
+			.string()
+			.min(10, 'Must be at least 10 characters')
+			.regex(/[A-Z]/, 'Must contain at least one uppercase letter')
+			.regex(/[a-z]/, 'Must contain at least one lowercase letter')
+			.regex(/[0-9]/, 'Must contain at least one number')
+			.regex(/[@$!%*?&]/, 'Must contain at least one special character (@$!%*?&)'),
+		passwordConfirmation: z.string()
+	})
+	.refine(data => data.password === data.passwordConfirmation, {
+		message: "Passwords do not match",
+		path: ["passwordConfirmation"]
 	})
 
 	type Schema = z.output<typeof schema>
@@ -44,14 +54,35 @@
 			if (res?.statusCode === 200) {
 				toast.add({
 					title: 'Success',
-					description: 'The form has been submitted.',
+					description: 'Your account has been created successfully.',
 					color: 'success'
 				})
 				await refreshSession()
 				navigateTo('/')
 			}
-		} catch (e) {
-			console.log(e)
+		} catch (error: any) {
+			// Generic user-friendly error without exposing details
+			let errorMessage = 'Registration failed. Please try again.'
+		
+			// If it's a validation error, we can safely show it
+			if (error?.response?.status === 422) {
+				errorMessage = 'Please check your information and try again.'
+			} else if (error?.response?.status === 409) {
+				errorMessage = 'An account with this email already exists.'
+			}
+		
+			toast.add({
+				title: 'Registration Error',
+				description: errorMessage,
+				color: 'error'
+			})
+		
+			// Server-side logging for monitoring
+			console.error('Registration error:', {
+				statusCode: error?.response?.status,
+				message: error?.message,
+				timestamp: new Date().toISOString()
+			})
 		}
 	}
 </script>
@@ -87,10 +118,22 @@
 				]"
 			/>
 			<UFormField label="Password" name="password">
-				<UInput v-model="state.password" />
+				<UInput v-model="state.password" type="password" />
+				<template #hint>
+					<div class="text-xs">
+						Password must contain at least:
+						<ul class="list-disc list-inside">
+							<li>10 characters</li>
+							<li>One uppercase letter</li>
+							<li>One lowercase letter</li>
+							<li>One number</li>
+							<li>One special character (@$!%*?&)</li>
+						</ul>
+					</div>
+				</template>
 			</UFormField>
-			<UFormField label="Confirm Password" name="passwordconfirm">
-				<UInput v-model="state.passwordConfirmation" />
+			<UFormField label="Confirm Password" name="passwordConfirmation">
+				<UInput v-model="state.passwordConfirmation" type="password" />
 			</UFormField>
 			<UButton type="submit"> Create an Account </UButton>
 		</UForm>

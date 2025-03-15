@@ -4,7 +4,7 @@ import type { FormSubmitEvent } from "#ui/types";
 
 const schema = z.object({
   email: z.string().email("Invalid email"),
-  password: z.string().min(8, "Must be at least 8 characters"),
+  password: z.string().min(10, "Must be at least 10 characters"),
 });
 
 type Schema = z.output<typeof schema>;
@@ -18,31 +18,31 @@ const credentials = reactive<Partial<Schema>>({
 
 const toast = useToast();
 async function login(event: FormSubmitEvent<Schema>) {
-  const [formError, res] = await catchError(
-    $fetch("/api/login", {
+  try {
+    const res = await $fetch("/api/login", {
       method: "POST",
       body: event.data,
-    }),
-  );
+    });
 
-  if (formError) {
+    if (res?.statusCode === 200) {
+      toast.add({
+        title: "Success",
+        description: "Welcome back!",
+        color: "success",
+      });
+      await refreshSession();
+      await navigateTo("/");
+    }
+  } catch (error: any) {
+    // Generic error message that doesn't expose implementation details
     toast.add({
-      title: "Error",
-      //@ts-ignore
-      description: formError.statusText,
+      title: "Authentication Failed",
+      description: "Invalid email or password. Please try again.",
       color: "error",
     });
-    return;
-  }
-
-  if (res?.statusCode === 200) {
-    toast.add({
-      title: "Success",
-      description: "Welcome back!",
-      color: "success",
-    });
-    await refreshSession();
-    await navigateTo("/");
+    
+    // Log detailed error server-side for monitoring
+    console.error("Login error:", error);
   }
 }
 </script>

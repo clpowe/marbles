@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import type { ZodError } from 'zod'
 import { catchError } from '@lib/utils'
+import { logAuthEvent } from '../utils/auditLogger'
+import { createUser } from '../db/auth'
 
 const bodySchema = z.object({
 	firstName: z.string(),
@@ -53,10 +55,10 @@ export default defineEventHandler(async (event) => {
 	}
 
 	// Insert user data into the database
-	const [userInsertError] = await catchError(
+	const [userInsertError, newUser] = await catchError(
 		createUser({
 			id: crypto.randomUUID(),
-			firstName: firstName, // Corrected to 'fistName' to match schema
+			firstName: firstName,
 			lastName: lastName,
 			email: email,
 			sex: sex,
@@ -65,12 +67,35 @@ export default defineEventHandler(async (event) => {
 		})
 	)
 	if (userInsertError) {
+		// Log registration failure
+		logAuthEvent({
+			eventType: 'REGISTRATION_FAILURE',
+			email,
+			ipAddress: getRequestHeader(event, 'x-forwarded-for') || event.node.req.socket.remoteAddress || 'unknown',
+			userAgent: getRequestHeader(event, 'user-agent'),
+			timestamp: new Date().toISOString(),
+			details: { 
+				reason: 'Database error',
+				error: userInsertError.message
+			}
+		});
+
 		throw createError({
 			statusCode: 500,
 			message: userInsertError.message,
 			cause: userInsertError.cause
 		})
 	}
+
+	// Log successful registration
+	logAuthEvent({
+		eventType: 'REGISTRATION_SUCCESS',
+		userId: newUser?.id,
+		email,
+		ipAddress: getRequestHeader(event, 'x-forwarded-for') || event.node.req.socket.remoteAddress || 'unknown',
+		userAgent: getRequestHeader(event, 'user-agent'),
+		timestamp: new Date().toISOString()
+	});
 
 	// Return success response
 	return {

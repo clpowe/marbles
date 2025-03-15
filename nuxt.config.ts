@@ -6,7 +6,20 @@ export default defineNuxtConfig({
 	modules: [
 		'@nuxthub/core',
 		'@pinia/nuxt',
-		'nuxt-auth-utils',
+		[
+			'nuxt-auth-utils',
+			{
+				// Enable CSRF protection
+				enableCSRFProtection: true,
+				// Cookie settings
+				cookie: {
+					name: 'marbles_session',
+					lifetime: 60 * 60 * 24 * 7, // 1 week
+					secure: process.env.NODE_ENV === 'production',
+					sameSite: 'lax'
+				}
+			}
+		],
 		'@nuxt/ui-pro',
 		'@vueuse/nuxt',
 		'nuxt-svgo'
@@ -36,24 +49,18 @@ export default defineNuxtConfig({
 	nitro: {
 		routeRules: {
 			'/sse': { ssr: false },
-			'/api/websocket': { 
+			'/api/websocket': {
 				ssr: false,
 				headers: {
 					'Access-Control-Allow-Origin': '*',
 					'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
 					'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-				} 
+				}
 			}
 		},
 		experimental: {
 			websocket: true,
 			tasks: true
-		},
-		cloudflare: {
-			workers: {
-				enableWebsockets: true,
-				unsafeEval: true // Needed for some WebSocket operations
-			}
 		}
 	},
 
