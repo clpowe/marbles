@@ -39,7 +39,7 @@ export default defineWebSocketHandler({
 			console.log('WebSocket message received:', message.text())
 			
 			// Check if peer is still connected
-			if (peer.websocket.readyState === 1) { // OPEN
+			if (peer.readyState === 1) { // OPEN
 				peer.send(JSON.stringify(children))
 				peer.publish(room, JSON.stringify(children))
 			}
