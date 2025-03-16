@@ -4,13 +4,13 @@
 
 	const route = useRoute()
 
-	const { children, add } = await useWebChildren()
+	const { children, add, subtract } = await useWebChildren()
 
 	// Handle touch double-taps
 	let lastTapTime = 0
 	const DOUBLE_TAP_DELAY = 300 // milliseconds
 
-	const child = computed(() => {
+	const childComputed = computed(() => {
 		if (children.value) {
 			return children.value.find((child) => child.id === route.params.id)
 		} else {
@@ -22,6 +22,17 @@
 			}
 		}
 	})
+
+	// Create a proper ref that will be used with add/subtract functions
+	const child = ref(childComputed.value as Child)
+
+	// Keep the child ref in sync with the computed value
+	watch(childComputed, (newVal) => {
+		if (newVal) {
+			child.value = newVal
+		}
+	})
+
 	const canvasWrapper = useTemplateRef('canvasWrapper')
 
 	const { width, height } = useElementBounding(canvasWrapper)
@@ -54,7 +65,9 @@
 			}
 		})
 
-		for (let i = 0; i < child.value.transactionSum; i++) {
+		// Only create balls if childComputed.value exists
+		const transactionCount = childComputed.value?.transactionSum || 0
+		for (let i = 0; i < transactionCount; i++) {
 			const centerX = width.value / 2
 
 			let circle: Matter.Body = Bodies.circle(centerX, 10, size(30, 80), {
@@ -128,8 +141,8 @@
 				const touch = event.changedTouches[0]
 				const rect = render.canvas.getBoundingClientRect()
 				const pos = {
-					x: touch.clientX - rect.left,
-					y: touch.clientY - rect.top
+					x: touch ? touch.clientX - rect.left : 0,
+					y: touch ? touch.clientY - rect.top : 0
 				}
 				handleDoubleEvent(pos.x, pos.y)
 				event.preventDefault() // prevent simulated mouse events
@@ -161,9 +174,10 @@
 		transactionSum: number
 	}[] = []
 
-	async function useAdd() {
+	async function handleAdd() {
+		let previousChildren = [...children.value]
 		add(
-			route.params.id,
+			route.params.id as string,
 			previousChildren,
 			balls,
 			Composite,
@@ -175,40 +189,20 @@
 		)
 	}
 
-	async function subtract() {
-		try {
-			const res = await $fetch('/api/updateMarbles', {
-				method: 'POST',
-				body: JSON.stringify({
-					childId: route.params.id,
-					amount: -1,
-					reason: 'Marble transaction'
-				}),
-				headers: {
-					'Content-Type': 'application/json'
-				},
-
-				onRequest() {
-					previousChildren = children.value
-					child.value.transactionSum -= 1
-					const idx = children.value.findIndex(
-						(child) => child.id === route.params.id
-					)
-					children.value[idx] = child.value
-
-					const ball: Matter.Body | undefined = balls.value.pop()
-					if (!ball) return
-					const { position } = ball as Matter.Body
-					createConfettiExplosion(position.x, position.y)
-					Composite.remove(engine.world, ball)
-				},
-				onResponseError() {
-					children.value = previousChildren
-				}
-			})
-		} catch (e) {
-			console.log(e)
-		}
+	async function handleSubtract() {
+		let previousChildren = [...children.value]
+		subtract(
+			route.params.id as string,
+			previousChildren,
+			balls,
+			Composite,
+			Bodies,
+			width,
+			size,
+			child,
+			engine,
+			height
+		)
 	}
 
 	function handleDoubleEvent(x: number, y: number) {
@@ -243,7 +237,7 @@
 		})
 	}
 
-	const size = function getRandomArbitrary(min, max) {
+	const size = function getRandomArbitrary(min: number, max: number): number {
 		return Math.random() * (max - min) + min
 	}
 
@@ -255,27 +249,30 @@
 
 <template>
 	<div ref="canvasWrapper" class="canvas-wrapper relative">
-		<div class="marbles">
-			<p class="text-8xl font-bold">{{ child.transactionSum }}</p>
+		<div v-if="childComputed" class="marbles">
+			<p class="text-8xl font-bold">{{ childComputed?.transactionSum || 0 }}</p>
 			<h1 class="text-4xl font-bold">
-				{{ child.firstName }}
+				{{ childComputed?.firstName || '' }}
 			</h1>
 			<UButtonGroup size="lg" orientation="horizontal">
 				<UButton
 					icon="i-heroicons-chevron-up-20-solid"
 					size="xl"
-					@click="useAdd"
+					@click="handleAdd"
 					variant="outline"
 					class="pointer-events-auto rounded-full"
 				/>
 				<UButton
 					icon="i-heroicons-chevron-down-20-solid"
 					size="xl"
-					@click="subtract"
+					@click="handleSubtract"
 					variant="outline"
 					class="pointer-events-auto rounded-full"
 				/>
 			</UButtonGroup>
+		</div>
+		<div v-else>
+			<USkeleton />
 		</div>
 	</div>
 </template>

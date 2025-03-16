@@ -1,8 +1,4 @@
-<script lang="ts" setup>
-	const { getChildren } = await useChildren()
-
-	await getChildren()
-</script>
+<script lang="ts" setup></script>
 
 <template>
 	<UApp>
