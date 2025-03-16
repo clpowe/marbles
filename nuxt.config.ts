@@ -24,7 +24,6 @@ export default defineNuxtConfig({
 		'@vueuse/nuxt',
 		'nuxt-svgo'
 	],
-	ssr: false,
 	hub: {
 		database: true
 	},
@@ -33,6 +32,10 @@ export default defineNuxtConfig({
 	},
 
 	css: ['@/assets/css/main.css'],
+	uiPro: {
+		mdc: true,
+		license: process.env.NUXT_UI_PRO_LICENSE
+	},
 	$development: {
 		hub: {
 			remote: true
