@@ -122,6 +122,35 @@
 	let previousChildren = []
 
 	async function add() {
+		// Optimistic update
+		previousChildren = children.value
+		child.value.transactionSum += 1
+		const idx = children.value.findIndex(
+			(c) => c.id === '9cc64e56-eb8d-4246-8d67-125716a25461'
+		)
+		children.value[idx] = child.value
+
+		// Add ball immediately
+		const ball = world.createDynamicBody({
+			position: planck.Vec2(25 / scale, 10 / scale),
+			linearDamping: 0.001
+		})
+		ball.createFixture(planck.Circle(50 / scale), {
+			friction: 0.5,
+			restitution: 0.8
+		})
+		balls.value.push(ball)
+
+		const gfx = new PIXI.Graphics()
+		gfx.beginFill(0xff4757)
+		gfx.drawCircle(0, 0, 50)
+		gfx.endFill()
+		gfx.x = ball.getPosition().x * scale
+		gfx.y = ball.getPosition().y * scale
+		pixiApp.stage.addChild(gfx)
+		ballGraphics.set(ball, gfx)
+
+	try {
 		await $fetch('/api/updateMarbles', {
 			method: 'POST',
 			body: JSON.stringify({
@@ -129,17 +158,70 @@
 				amount: 1,
 				reason: 'Marble transaction'
 			}),
-			headers: { 'Content-Type': 'application/json' },
-			onRequest() {
-				previousChildren = children.value
-				child.value.transactionSum += 1
-				const idx = children.value.findIndex(
-					(c) => c.id === '9cc64e56-eb8d-4246-8d67-125716a25461'
-				)
-				children.value[idx] = child.value
+			headers: { 'Content-Type': 'application/json' }
+		})
+		} catch (error) {
+			// Revert on error
+			children.value = previousChildren
+			// Remove the ball that was added optimistically
+			const lastBall = balls.value.pop()
+			if (lastBall) {
+				world.destroyBody(lastBall)
+				const lastGfx = ballGraphics.get(lastBall)
+				if (lastGfx) {
+					pixiApp.stage.removeChild(lastGfx)
+					ballGraphics.delete(lastBall)
+				}
+			}
+			console.error('Failed to add marble:', error)
+		}
+	}
 
+	async function subtract() {
+		// Optimistic update
+		previousChildren = [...children.value]
+		const originalSum = child.value.transactionSum
+		child.value.transactionSum -= 1
+		const idx = children.value.findIndex(
+			(c) => c.id === '9cc64e56-eb8d-4246-8d67-125716a25461'
+		)
+		children.value[idx] = { ...child.value }
+
+		// Remove ball immediately
+		const ball = balls.value.pop()
+		let removedBallData = null
+		if (ball) {
+		const pos = ball.getPosition()
+		removedBallData = { pos: { x: pos.x, y: pos.y } }
+			createConfettiExplosion(pos.x * scale, pos.y * scale)
+			world.destroyBody(ball)
+
+			const gfx = ballGraphics.get(ball)
+			if (gfx) {
+				pixiApp.stage.removeChild(gfx)
+				ballGraphics.delete(ball)
+			}
+		}
+
+	try {
+		await $fetch('/api/updateMarbles', {
+			method: 'POST',
+			body: JSON.stringify({
+				childId: '9cc64e56-eb8d-4246-8d67-125716a25461',
+				amount: -1,
+				reason: 'Marble transaction'
+			}),
+			headers: { 'Content-Type': 'application/json' }
+		})
+		} catch (error) {
+			// Revert on error
+			children.value = previousChildren
+			child.value.transactionSum = originalSum
+			
+			// Re-add the ball if one was removed
+			if (removedBallData) {
 				const ball = world.createDynamicBody({
-					position: planck.Vec2(25 / scale, 10 / scale),
+					position: planck.Vec2(removedBallData.pos.x, removedBallData.pos.y),
 					linearDamping: 0.001
 				})
 				ball.createFixture(planck.Circle(50 / scale), {
@@ -156,49 +238,8 @@
 				gfx.y = ball.getPosition().y * scale
 				pixiApp.stage.addChild(gfx)
 				ballGraphics.set(ball, gfx)
-			},
-			onResponseError() {
-				children.value = previousChildren
 			}
-		})
-	}
-
-	async function subtract() {
-		try {
-			await $fetch('/api/updateMarbles', {
-				method: 'POST',
-				body: JSON.stringify({
-					childId: '9cc64e56-eb8d-4246-8d67-125716a25461',
-					amount: -1,
-					reason: 'Marble transaction'
-				}),
-				headers: { 'Content-Type': 'application/json' },
-				onRequest() {
-					previousChildren = children.value
-					child.value.transactionSum -= 1
-					const idx = children.value.findIndex(
-						(c) => c.id === '9cc64e56-eb8d-4246-8d67-125716a25461'
-					)
-					children.value[idx] = child.value
-
-					const ball = balls.value.pop()
-					if (!ball) return
-					const pos = ball.getPosition()
-					createConfettiExplosion(pos.x * scale, pos.y * scale)
-					world.destroyBody(ball)
-
-					const gfx = ballGraphics.get(ball)
-					if (gfx) {
-						pixiApp.stage.removeChild(gfx)
-						ballGraphics.delete(ball)
-					}
-				},
-				onResponseError() {
-					children.value = previousChildren
-				}
-			})
-		} catch (e) {
-			console.log(e)
+			console.error('Failed to subtract marble:', error)
 		}
 	}
 

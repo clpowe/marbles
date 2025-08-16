@@ -61,6 +61,9 @@
     "h3": "npm:h3-nightly@latest"
   },
   "trustedDependencies": [
-    "@parcel/watcher"
+    "@parcel/watcher",
+    "esbuild",
+    "vue-demi",
+    "workerd"
   ]
 }
