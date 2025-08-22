@@ -15,19 +15,24 @@
 </script>
 
 <template>
-	<!-- <div class="actions pointer-events-none">
-    <UButton @click="prev" class="pointer-events-auto">Prev</UButton>
-    <UButton @click="next" class="pointer-events-auto">Next</UButton>
-  </div> -->
 	<div class="grid h-screen w-full place-content-center">
 		<section v-if="children" class="grid gap-2">
+      <UPageGrid>
 			<NuxtLink
 				:to="`${child.id}`"
 				v-for="child in children"
 				:key="child.id"
 				class="text-2xl"
-				>{{ child.firstName }} - {{ child.transactionSum }}</NuxtLink
+				>
+      <UCard>
+
+
+{{ child.firstName }} - {{ child.transactionSum }}
+    </UCard>
+
+  </NuxtLink
 			>
+      </UPageGrid>
 		</section>
 	</div>
 </template>

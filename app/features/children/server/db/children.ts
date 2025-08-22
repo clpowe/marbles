@@ -24,7 +24,13 @@ export async function getChildren(userId: string) {
 		)
 		.groupBy(ChildrenTable.id)
 
-	return res
+	// Normalize results to ensure proper prototype chain
+	return res.map((child: any) => ({
+		id: child.id,
+		firstName: child.firstName,
+		lastName: child.lastName,
+		transactionSum: Number(child.transactionSum) || 0
+	}))
 }
 
 export async function createChild(child: ChildInsert) {
