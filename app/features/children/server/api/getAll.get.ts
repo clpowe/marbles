@@ -10,5 +10,6 @@ export default defineEventHandler(async (event) => {
     return [];
   }
   const children = await getChildren(user?.id);
-  return children;
+  // Normalize records to plain objects with default prototype
+  return children.map((c: any) => ({ ...c }));
 });

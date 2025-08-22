@@ -14,7 +14,13 @@ export const useChildren = async () => {
 
 	watch(data, () => {
 		if (status.value == 'OPEN') {
-			children.value = JSON.parse(data.value as string)
+			// Normalize the parsed data to ensure proper prototype chain
+			const parsed = JSON.parse(data.value as string)
+			if (Array.isArray(parsed)) {
+				children.value = parsed.map((child: any) => ({ ...child }))
+			} else {
+				children.value = []
+			}
 			return
 		}
 
@@ -32,8 +38,13 @@ export const useChildren = async () => {
 	watch(status, () => {})
 
 	async function getChildren() {
-		const res = $fetch('/api/getAll')
-		children.value = await res
+		const res = await $fetch('/api/getAll')
+		// Normalize data to ensure proper prototype chain
+		if (Array.isArray(res)) {
+			children.value = res.map((child: any) => ({ ...child }))
+		} else {
+			children.value = []
+		}
 	}
 
 	return { children, close, getChildren }

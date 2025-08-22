@@ -1,13 +1,5 @@
 <script setup lang="ts">
-	import IconLogo2 from '@/assets/icons/icon-logo2.svg'
-
-	import AddChild from '@children/components/AddChild.vue'
 	const { loggedIn, user, session, fetch, clear } = useUserSession()
-	const modal = useModal()
-
-	function openModal() {
-		modal.open(AddChild, { title: 'Welcome' })
-	}
 
 	const { children } = await useChildren()
 	type Child = {
@@ -37,28 +29,27 @@
 					to: '/login'
 				},
 				{
-					label: 'logout',
+					label: 'Logout',
 					icon: 'i-lucide-log-out',
-
-					onSelect: (e) => clear()
+					to: '/logout'
 				}
 			]
 		}
 	})
 
 	watch(data, () => {
-		items.value = data.value
+		items.value = data
 	})
 </script>
 
 <template>
 	<header class="pointer-events-none flex gap-4 items-center">
 		<NuxtLink to="/" class="pointer-events-auto">
-			<icon-logo2 class="h-6" :fontControlled="false" filled />
+      Marbles
 		</NuxtLink>
 		<UNavigationMenu
 			color="neutral"
-			:items="data"
+			:items="items"
 			variant="pill"
 			class="w-full pointer-events-auto"
 		/>

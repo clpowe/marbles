@@ -272,7 +272,8 @@
 </script>
 
 <template>
-	<div ref="canvasWrapper" class="canvas-wrapper relative">
+	<div v-if="child" ref="canvasWrapper" class="canvas-wrapper relative">
+		
 		<div class="marbles">
 			<p class="text-8xl font-bold">{{ child.transactionSum }}</p>
 			<h1 class="text-4xl font-bold">
@@ -295,6 +296,9 @@
 				/>
 			</UButtonGroup>
 		</div>
+	</div>
+	<div v-else>
+		<p>Child not found</p>
 	</div>
 </template>
 
