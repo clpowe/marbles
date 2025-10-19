@@ -1,15 +1,16 @@
 <script lang="ts" setup>
-	const { getChildren } = await useChildren()
+const { getChildren } = await useWebSocketChildren()
 
-	await getChildren()
+await getChildren()
+
 </script>
 
 <template>
-	<UApp>
-		<NuxtLoadingIndicator />
+  <div>
+    <NuxtLoadingIndicator />
 
-		<NuxtLayout>
-			<NuxtPage />
-		</NuxtLayout>
-	</UApp>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+  </div>
 </template>
