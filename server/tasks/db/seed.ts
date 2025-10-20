@@ -4,7 +4,7 @@ export default defineTask({
     description: "Run database seed task",
   },
   async run() {
-    console.log("Running DB seed task...");
+    // console.log("Running DB seed task...");
 
     const id1 = crypto.randomUUID();
     const id2 = crypto.randomUUID();
@@ -27,7 +27,7 @@ export default defineTask({
         createdAt: new Date().toISOString(),
       },
     ];
-    await useDrizzle().insert(tables.users).values(users);
+    await useDrizzle().insert(tables.UserTable).values(users);
     return { result: "success" };
   },
 });

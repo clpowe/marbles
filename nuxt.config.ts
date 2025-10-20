@@ -10,8 +10,12 @@ export default defineNuxtConfig({
   ],
 
   hub: {
+    bindings: {
+      compatibilityDate: "2025-10-08",
+      compatibilityFlags: ['nodejs_compat_v2']
+    },
     database: true,
-    workers: true
+    workers: true,
   },
   svgo: {
     autoImportPath: './assets/icons/'
@@ -27,6 +31,10 @@ export default defineNuxtConfig({
   nitro: {
     routeRules: {
       '/sse': { ssr: false }
+    },
+    cloudflare: {
+      deployConfig: true,
+      nodeCompat: true
     },
     experimental: {
       websocket: true,
@@ -47,7 +55,7 @@ export default defineNuxtConfig({
     '@server': fileURLToPath(new URL('./server', import.meta.url)),
     '@lib': fileURLToPath(new URL('./lib', import.meta.url))
   },
-
+  compatibilityDate: "2025-10-08",
   devtools: { enabled: true },
 
 })
