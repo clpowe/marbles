@@ -32,6 +32,15 @@ export default defineNuxtConfig({
     routeRules: {
       '/sse': { ssr: false }
     },
+    rollupConfig: {
+      external: (id) => {
+        return (
+          (id.startsWith('node:') && !id.includes('node:tty')) ||
+          id === 'picomatch' ||
+          id === 'anymatch'
+        );
+      },
+    },
     cloudflare: {
       deployConfig: true,
       nodeCompat: true
